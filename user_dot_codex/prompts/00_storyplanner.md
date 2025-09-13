@@ -16,6 +16,7 @@ Seed or augment project specs from feature needs; bootstrap `.codex/*`.
    - id: STORY-### (incremental), status=ready, priority=P2, depends_on=[], component_tags=[], tasks_generated=false
    - sections: Motivation, Acceptance (testable bullets), NFR, Out of Scope (optional)
    - compute story_fingerprint
+   - Hotfix note: when the feature is a hotfix, set `kind: hotfix` and consider defaulting priority to P0.
 2) Ensure `.codex/spec/02.design.md` exists; if missing, render from design schema with status=draft.
 3) Append stories to `.codex/spec/01.requirements.md` (dedupe on normalized title).
 4) Write run log `.codex/runs/<ts>/storyplanner.md`.

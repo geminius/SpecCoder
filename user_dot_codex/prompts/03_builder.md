@@ -17,7 +17,7 @@ Pick the first task where:
 - superseded_by=null
 - dependency policy satisfied
 - story.status in {planned,in_progress,done}
-Order by priority P0→P3, then TASK-ID asc.
+Order by priority P0→P3, then TASK-ID asc (tie-breaker: oldest last_modified_ts).
 
 ## Steps (per task)
 1) Claim → update `.codex/tasks/<TASK-ID>.md` → status: in_progress; set `assignee` if available; log claim.
@@ -33,6 +33,7 @@ Order by priority P0→P3, then TASK-ID asc.
 
 ## Chaining (optional)
 If auto_run_next_task=true, loop up to builder.max_tasks_per_run respecting chain_scope and stop_on rules; honor timebox.
+Note: chain_scope allowed values: same_story | same_component | any.
 
 ## Output
 - Code + tests only; task ends in review; run log updated.

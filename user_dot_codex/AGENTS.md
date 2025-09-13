@@ -32,7 +32,7 @@
 
 ## Builder Chain Settings
 - builder.max_tasks_per_run: 3
-- builder.chain_scope: same_story
+- builder.chain_scope: same_story  # allowed: same_story | same_component | any
 - builder.stop_on:
   - red_tests
   - dep_policy_violation
@@ -54,7 +54,7 @@
 
 ## Global Guardrails & Commands
 - Never edit: infra/**, .github/**, deploy/**, **/*.secrets*, **/.env*, **/secrets/**
-- Builder edits only: src/**, tests/**, .codex/tasks/**
+- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**
 - Commands (override in project): install, lint, test, test:it, coverage_min (default 80)
 - Commit/PR (when VCS is used): "[STORY-ID][TASK-ID][COMP-<component>] <summary>"
 
