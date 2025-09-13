@@ -28,7 +28,7 @@
 - auto_spec_chain: false
 - auto_post_build_test: false
 - auto_run_next_task: true
-- tester_only_on_review: true
+- Tester gate: runs only when task status=review (hard rule; no flag)
 
 ## Builder Chain Settings
 - builder.max_tasks_per_run: 3
@@ -57,3 +57,9 @@
 - Builder edits only: src/**, tests/**, .codex/tasks/**
 - Commands (override in project): install, lint, test, test:it, coverage_min (default 80)
 - Commit/PR (when VCS is used): "[STORY-ID][TASK-ID][COMP-<component>] <summary>"
+
+## Spec Conventions
+- Front-matter: YAML with stable keys (see schemas)
+- Fingerprints required: story_fingerprint, design_fingerprint
+- .codex/spec/03.tasks.md is derived; planners rebuild it (do not hand-edit)
+- Status transitions: story draft→ready→planned→in_progress→done (blocked side-state); task ready→in_progress→review→done (blocked|needs_update|superseded side-states)

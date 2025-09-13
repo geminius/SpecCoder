@@ -20,3 +20,6 @@ kind: feature
 
 ### NFR
 - <non-functional>
+
+### Out of Scope
+- <excluded>
