@@ -11,6 +11,7 @@ Implement a ready task via TDD; minimal diffs; policy-compliant.
 - Policies: auto_run_next_task, auto_post_build_test; Builder Chain Settings
 
 ## Selection
+Resolve target using Selection precedence (NEXT → eligible set → INFO).
 Pick the first task where:
 - status=ready
 - fingerprints match current specs
@@ -31,6 +32,15 @@ Order by priority P0→P3, then TASK-ID asc (tie-breaker: oldest last_modified_t
 6) Prepare PR body text (even if no PR) in `.codex/runs/<ts>/builder.md`.
 7) Refresh `.codex/spec/03.tasks.md` if needed.
 
+## PR Automation (optional)
+- If `builder.auto_open_pr=true`, attempt to open a draft PR using GitHub CLI when conditions are met:
+  - Remote exists (`builder.pr_remote`); `gh` is available; a PR for the current branch does not already exist.
+  - Use title: `[STORY-ID][TASK-ID][COMP-<component>] <summary>` (per AGENTS.md conventions).
+  - Use body file: `.codex/runs/<ts>/builder.md`.
+  - Draft vs ready follows `builder.open_pr_draft`.
+  - If a PR already exists: print `INFO: PR already exists` and continue.
+  - If prerequisites are not met (no commits, no remote), skip silently; do not block local workflows.
+
 ## Chaining (optional)
 If auto_run_next_task=true, loop up to builder.max_tasks_per_run respecting chain_scope and stop_on rules; honor timebox.
 Note: chain_scope allowed values: same_story | same_component | any.
@@ -41,5 +51,12 @@ Note: chain_scope allowed values: same_story | same_component | any.
 ## NEXT
 - NEXT: run Tester (04_tester.md) for the last processed task (Tester may be auto-run if auto_post_build_test=true).
 
+## Guardrails
+- Edit only: `src/**`, `tests/**`, `.codex/tasks/**` (and `scripts/**` if allowed by project AGENTS.md).
+
 ## Stop Conditions
-- red_tests; dep_policy_violation; pr_too_large; fingerprint_drift
+- On any of the following, print a terminal line and stop:
+  - `BLOCKED: red_tests` (tests failing after implementation attempts)
+  - `BLOCKED: dep_policy_violation` (violates dependency_policy)
+  - `BLOCKED: pr_too_large` (exceeds small_prs threshold/timebox)
+  - `BLOCKED: fingerprint_drift` (story/design fingerprints no longer match)
