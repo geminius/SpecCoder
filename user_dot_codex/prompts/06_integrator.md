@@ -9,6 +9,9 @@ Finish safely; update lineage and changelog; flip statuses.
 - `CHANGELOG.md` (project root)
 - Policies: integrator.require_tester_log, require_tester
 
+## Selection
+Resolve target using Selection precedence (NEXT → eligible set → INFO).
+
 ## Local/Remote Detection (automatic)
 - If no remote/PR, or no new commit created, or working tree dirty → local mode (use shadow ids).
 - Else VCS mode (require merged PR/commit).
@@ -17,11 +20,13 @@ Finish safely; update lineage and changelog; flip statuses.
 - If integrator.require_tester_log OR require_tester:
   - Missing tester result → BLOCKED: missing Tester result; stop.
   - Tester status != PASS → BLOCKED: Tester not passing; stop.
+- Fingerprint drift protection: if any candidate task in `review` has story/design fingerprint drift vs current specs → BLOCKED: fingerprint drift; stop.
 
 ## Steps
 1) Reconcile shadows (idempotent, optional hybrid path):
    - Scan existing `.codex/trace/lineage.json` for entries that reference `shadow:<hash>`.
    - If a real commit now exists whose diff hash matches `<hash>`, update the lineage entry to use `commit_sha` instead of the shadow id.
+   - Safe on reruns: reconciliation is idempotent and does not change task/story statuses.
    - Do not change task/story statuses during reconciliation.
 2) For each task in `review` with gates satisfied:
    - VCS mode: ensure PR merged; get `commit_sha`.

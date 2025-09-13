@@ -11,6 +11,9 @@ Seed or augment project specs from feature needs; bootstrap `.codex/*`.
 - Interactive Q&A or a feature file path (PRD/bullets).
 - User/Project AGENTS.md for conventions and schema paths.
 
+## Selection
+Resolve target using Selection precedence (NEXT → eligible set → INFO).
+
 ## Steps
 1) Intake features; produce vertical user stories with:
    - id: STORY-### (incremental), status=ready, priority=P2, depends_on=[], component_tags=[], tasks_generated=false

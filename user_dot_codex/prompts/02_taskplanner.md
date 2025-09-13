@@ -9,11 +9,14 @@ Turn eligible stories into 1–3 small tasks each; tests-first.
 - Existing .codex/tasks/*.md and .codex/spec/03.tasks.md
 - Schema paths from AGENTS.md
 
+## Selection
+Resolve target using Selection precedence (NEXT → eligible set → INFO).
+
 ## Steps
 1) Select stories with tasks_generated=false or with stale tasks by fingerprint.
    - Selection order: priority P0→P3, then STORY-ID asc; tie-breaker: oldest `last_modified_ts`.
 2) For the selected story:
-   - Supersede stale `ready/needs_update` tasks (link superseded_by).
+   - Supersede stale `ready/needs_update` tasks: set `status: superseded` and link `superseded_by`.
    - Render `.codex/tasks/TASK-###.md` from task schema; set status=ready; inherit priority; set story/design fingerprints.
    - Set story.tasks_generated=true and, if newly planned, story.status=planned.
    - Hotfix note: if `story.kind=hotfix`, prefer a single focused task (priority typically P0) to expedite the fix.

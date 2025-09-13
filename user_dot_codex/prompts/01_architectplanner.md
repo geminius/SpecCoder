@@ -8,6 +8,9 @@ Make the design ready: components, interfaces, dependency policy, quality budget
 - .codex/spec/02.design.md (render if missing)
 - Project AGENTS.md
 
+## Selection
+Resolve target using Selection precedence (NEXT → eligible set → INFO).
+
 ## Steps
 1) Normalize/ensure components for all ready/planned stories (component_tags resolvable).
 2) Add/adjust public interfaces for endpoints/events referenced by stories.

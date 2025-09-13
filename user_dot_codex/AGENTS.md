@@ -47,6 +47,19 @@
 - reviewer.block_without_changelog: false
 - integrator.require_changelog_entry: false
 
+## PR Automation (optional)
+# Builder can optionally open a draft PR after moving a task to review.
+# Reviewer can optionally flip a draft PR to ready-for-review.
+- builder.auto_open_pr: false
+- builder.open_pr_draft: true
+- builder.pr_remote: origin
+- builder.pr_base: main
+# Optional: create/use a branch per task when opening PRs (tooling dependent)
+- builder.branch_naming: task/<TASK-ID>
+- reviewer.auto_mark_pr_ready: false
+# Optional: auto-request reviewers by handle
+- reviewer.request_reviewers: []
+
 ## Local-only shadow integration (automatic; no flags)
 - If no remote, or working tree dirty, or no new commit created during the run → Integrator switches to local mode.
 - In local mode, `shadow_id = review_baseline_sha` (from task) is used in lineage/changelog instead of a commit SHA.
