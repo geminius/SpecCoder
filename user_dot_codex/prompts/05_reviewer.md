@@ -13,7 +13,7 @@ PR checklist, DoD & policy checks; works with or without GitHub.
 - If reviewer.block_without_tester OR require_tester:
   - Missing PASS tester result → set task status=blocked (reason: missing tester evidence); print BLOCKED and stop.
 - Orphan diff detection (local or PR):
-  - If changes touch src/** or tests/** not listed in any task's `artifacts`:
+  - If changes touch src/**, tests/**, or scripts/** not listed in any task's `artifacts`:
     - Auto-create `.codex/tasks/TASK-RETROFIT-###.md` (priority=P1) capturing those paths; status=ready.
     - Print BLOCKED: orphan diff → created retrofit task; stop.
 

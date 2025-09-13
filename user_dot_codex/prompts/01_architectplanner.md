@@ -13,6 +13,7 @@ Make the design ready: components, interfaces, dependency policy, quality budget
 2) Add/adjust public interfaces for endpoints/events referenced by stories.
 3) Update dependency_policy.allowed/forbidden and quality_budgets as implied by stories/NFRs.
 4) Recompute design_fingerprint; set design.status=ready if prerequisites met; else keep draft and list Open Questions.
+   - Hotfix note: for `story.kind=hotfix`, accept a minimal design sufficient to unblock a single focused task; backfill full design details after the fix.
 5) Log `.codex/runs/<ts>/architectplanner.md`.
 
 ## Output
