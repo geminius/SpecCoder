@@ -8,5 +8,4 @@ This pack reflects the v1g4 design:
 - Integrator supports local-only **shadow lineage** (no GitHub required)
 
 Copy:
-- `user_dot_codex/` → `~/.codex/`
-- `project_skeleton/` → your repo, then run the agents.
+- `user_dot_codex/` → `~/.codex/`.
