@@ -1,0 +1,8 @@
+{
+  "task_id": "TASK-001",
+  "status": "PASS",
+  "coverage": 0.9,
+  "scenarios": [
+    "reset_ok"
+  ]
+}

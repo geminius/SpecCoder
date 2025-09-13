@@ -1,0 +1,24 @@
+{
+  "entries": [
+    {
+      "story_id": "STORY-001",
+      "tasks": [
+        {
+          "id": "TASK-001",
+          "files": [
+            "src/api/reset.py",
+            "tests/api/test_reset.py"
+          ],
+          "commit_or_shadow": {
+            "kind": "shadow",
+            "id": "db5918b1355c090188875e7999cfd68b5eddf40f36f28255d2c975518e01a380"
+          },
+          "tester": {
+            "status": "PASS",
+            "coverage": 0.9
+          }
+        }
+      ]
+    }
+  ]
+}
