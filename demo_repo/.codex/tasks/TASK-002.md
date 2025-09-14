@@ -8,7 +8,7 @@ component: api
 artifacts: ['src/api/reports_export.py', 'tests/api/test_reports_export.py']
 assignee: null
 story_fingerprint: "sha256:4e6875acfa96dfb5f3a6a030a1b7fb3b01b9d92737d2c24fee589fe3a3e1c5a6"
-design_fingerprint: "sha256:20ac8619173d9f92645a468e7d63e3e7c92fac501b98df3a606ff15d212465cb"
+design_fingerprint: "sha256:2ff2b48a932e4e0e3b5b586426e8d72dfda7de9b3fcef706379c6ba4eaeb1892"
 superseded_by: null
 artifact_fingerprints: {}
 review_baseline_sha: ""
@@ -27,4 +27,3 @@ Add GET /v1/reports/{id}/export?format=csv endpoint: validate params, enforce ro
 
 ### Rollback
 git revert <commit or shadow>; no schema changes.
-
