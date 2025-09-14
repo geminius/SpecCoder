@@ -67,9 +67,31 @@
 
 ## Global Guardrails & Commands
 - Never edit: infra/**, .github/**, deploy/**, **/*.secrets*, **/.env*, **/secrets/**
-- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**
+- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**, .codex/tools/**
 - Commands (override in project): install, lint, test, test:it, coverage_min (default 80)
 - Commit/PR (when VCS is used): "[STORY-ID][TASK-ID][COMP-<component>] <summary>"
+
+## Agent Tooling Convention
+- Project-specific helper scripts and small utilities that agents may create or run must live under `.codex/tools/**` at the project root.
+  - Prefer simple, composable, idempotent scripts (bash/python) with no hidden state.
+  - Agents should invoke them via relative paths (e.g., `./.codex/tools/<tool>.sh`) and avoid placing tools elsewhere.
+  - Any networked tool usage must respect repository/network sandbox settings and project policies.
+
+## Folder Conventions (src, tests, scripts)
+- `src/**`
+  - Production/runtime code only (libraries, services, CLI entrypoints that ship with the app).
+  - Organize by components from `02.design.md` (e.g., `src/api`, `src/reporting`). Keep public interfaces stable and documented.
+  - No test data, prototypes, or throwaway scripts. No secrets or environment-specific credentials.
+  - Keep configuration injectable (env vars, config files) and avoid global hidden state.
+- `tests/**`
+  - All automated tests. Mirror `src/**` structure where practical.
+  - Split by type using markers/directories: unit (default), integration (`-m it` per `AGENTS.md`), and optional e2e.
+  - Include fixtures under `tests/fixtures/**`. Keep tests deterministic; avoid real network/IO unless explicitly marked as integration.
+  - Do not place test helpers in `src/**`; keep them under `tests/_utils/**` or similar.
+- `scripts/**`
+  - Developer/CI utilities (install, lint, format, local setup, codegen, data seeding, migrations wrappers).
+  - Not imported by production code; safe to run locally and in CI. Prefer idempotent, parameterized scripts with `--help`.
+  - If a script is intended for agent use during runs, prefer `.codex/tools/**` instead (see above).
 
 ## Spec Conventions
 - Front-matter: YAML with stable keys (see schemas)
