@@ -25,6 +25,33 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
 3) No GitHub? Everything still works locally; Integrator records a shadow ID.
 4) On GitHub? Use the optional PR flags in `AGENTS.md` or run `07_pr_creator.md` to open a ready‑for‑review PR with an auto‑generated description.
 
+## Interactive Mode Menus
+Agents run with zero parameters but now start with a small, first‑turn menu to make intent explicit. If you provide no selection, they default to the first option.
+
+- StoryPlanner
+  - New story (default)
+  - Update existing story
+  - Merge stories
+  - Bootstrap from scratch
+  - Scan codebase and propose stories (non‑destructive; writes `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft stories)
+  - Cancel
+
+- ArchitectPlanner
+  - Make design ready (default)
+  - Update components & interfaces
+  - Update dependency policy
+  - Update quality budgets
+  - Generate/refresh API contracts
+  - Analyze and list open questions (log‑only)
+  - Cancel
+
+- TaskPlanner
+  - Plan tasks for eligible stories (default)
+  - Regenerate tasks for specific stories
+  - Supersede stale tasks only
+  - Rebuild derived list only
+  - Cancel
+
 ## Common Use Cases
 - New feature: Plan stories/design → generate small tasks → TDD via Builder → test/review/integrate.
 - Existing codebase, add specs: Backfill stories/design; TaskPlanner creates focused tasks; Reviewer catches orphan diffs.
