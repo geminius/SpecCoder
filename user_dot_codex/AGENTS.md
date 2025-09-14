@@ -2,7 +2,7 @@
 
 ## Agent Registry
 - StoryPlanner: 00_storyplanner.md
-- ArchitectPlanner: 01_architectplanner.md
+- ArchitecturePlanner: 01_architectureplanner.md
 - TaskPlanner: 02_taskplanner.md
 - Builder: 03_builder.md
 - Tester: 04_tester.md

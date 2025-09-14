@@ -97,5 +97,5 @@ If no selection is provided during an interactive session, default to (1) New st
 - Run log only
 
 ## NEXT
-- If any story is `ready`: `NEXT: run ArchitectPlanner (01_architectplanner.md)`
+- If any story is `ready`: `NEXT: run ArchitecturePlanner (01_architectureplanner.md)`
 - Else: `INFO: no actionable features`
