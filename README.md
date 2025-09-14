@@ -52,6 +52,11 @@ Agents run with zero parameters but now start with a small, first‑turn menu to
   - Rebuild derived list only
   - Cancel
 
+## Story Format (Required)
+- User Story: As a <persona>, I want to <do something> so that <meet goal>.
+- Acceptance: testable bullets aligned to the goal.
+- Persona: name/role, primary goals, pain points, environment/constraints.
+
 ## Common Use Cases
 - New feature: Plan stories/design → generate small tasks → TDD via Builder → test/review/integrate.
 - Existing codebase, add specs: Backfill stories/design; TaskPlanner creates focused tasks; Reviewer catches orphan diffs.
