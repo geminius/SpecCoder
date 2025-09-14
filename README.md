@@ -1,4 +1,4 @@
-# Codex Agentic Framework — v1g4
+# Codex Agentic Framework
 
 A spec‑first, prompt‑only workflow that turns product specs into deterministic coding loops — no servers, no hidden state. Agents are stateless and run with zero parameters.
 
