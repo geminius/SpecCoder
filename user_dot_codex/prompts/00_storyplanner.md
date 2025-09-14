@@ -71,6 +71,20 @@ If no selection is provided during an interactive session, default to (1) New st
 - For scan/bootstrap modes, default to `status: draft` unless Acceptance is concrete.
 - Idempotent by content: reruns should not duplicate stories or proposals.
 
+## Persona Catalog Matching (how-to)
+- Source: `.codex/spec/00.personas.md` (optional). If absent, accept inline persona details and write proposals to `.codex/runs/<ts>/persona_proposals.md`.
+- Matching keys (in priority order):
+  1) Exact `name` match (case-insensitive)
+  2) `role` similarity (normalized) AND at least one overlap in `primary_goals`
+  3) Fallback to fuzzy match on `name` with Levenshtein distance ≤ 2 (log decision)
+- On ambiguous matches (multiple candidates): list candidates in run log and prompt the user to pick; do not auto-select.
+- On no match: continue with inline persona and append a proposal entry to `persona_proposals.md`.
+
+### Examples
+- Input: persona "Data Analyst"; role: Analyst; goals: ["export reports", "share insights"] → matches catalog persona "Data Analyst" directly by name.
+- Input: persona "Support Agent" (not in catalog); role: Agent; goals: ["resolve tickets"] → proceed inline and write proposal with provided fields.
+- Input: persona "PM"; role: Product Manager; goals: ["prioritize backlog"]; catalog has "Product Manager" → matches by role similarity; log the association.
+
 ## Output
 - `.codex/spec/01.requirements.md` (stories updated/appended as applicable)
 - `.codex/spec/02.design.md` (ensured; created if missing)
