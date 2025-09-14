@@ -111,7 +111,13 @@ tasks_generated: false
 story_fingerprint: "sha256:…"
 kind: feature|refactor|hotfix   # aids policy/selection
 ```
-Sections: Motivation, Acceptance (bullet, testable), NFR, Out of Scope.
+Sections:
+- User Story (required): "As a <persona>, I want to <do something> so that <meet goal>."
+- Motivation
+- Acceptance (testable bullets aligned to the goal)
+- NFR
+- Out of Scope (optional)
+- Persona (definition: name/role, primary goals, pain points, environment/constraints)
 
 ### 3.2 Design (`02.design.md`)
 ```yaml

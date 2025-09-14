@@ -29,9 +29,15 @@ If no selection is provided during an interactive session, default to (1) New st
 - New story
   - Create vertical user stories in `.codex/spec/01.requirements.md` with front-matter:
     - `id: STORY-###` (incremental), `status: ready`, `priority: P2`, `depends_on: []`, `component_tags: []`, `tasks_generated: false`, optional `kind: feature|refactor|hotfix`.
-  - Sections: Motivation, Acceptance (testable bullets), NFR, Out of Scope (optional).
+  - Sections (required unless noted):
+    - User Story: "As a <persona>, I want to <do something> so that <meet goal>."
+    - Motivation (why now)
+    - Acceptance (testable bullets aligned to the goal)
+    - NFR
+    - Out of Scope (optional)
+    - Persona: name/role, primary goals, pain points, environment/constraints
   - Compute and set `story_fingerprint`.
-  - Dedupe by normalized title to avoid duplicates.
+  - Dedupe by normalized user story/title to avoid duplicates.
 - Update story
   - Require explicit `STORY-IDs` and updated fields/sections.
   - Edit content; recompute `story_fingerprint` for each updated story.
