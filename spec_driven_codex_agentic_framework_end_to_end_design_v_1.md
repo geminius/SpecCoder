@@ -49,6 +49,7 @@ repo/
 - Tester: `04_tester.md`
 - Reviewer: `05_reviewer.md`
 - Integrator: `06_integrator.md`
+- PRCreator (utility): `07_pr_creator.md`
 
 ### 2.2 Schema mapping (authoritative)
 - `story`: `~/.codex/schemas/requirements.template.md`
@@ -242,6 +243,27 @@ Human‑readable backlog (checkbox list), rebuilt from `.codex/tasks/*.md` — *
 - **Output**: lineage/changelog updates; statuses flipped; integrator log.
 - **NEXT**: end of chain.
 
+### 5.8 PR Creator (utility) (`07_pr_creator.md`)
+**Role**: Commit current changes and open a ready‑for‑review PR via GitHub CLI. Optional; does not affect the Story→Design→Task→Build→Test→Review→Integrate chain.
+
+- **Preflight/Guardrails**:
+  - Require GitHub CLI installed and authenticated (`repo` scope). Else `BLOCKED: gh not installed/authenticated`.
+  - Require a reachable remote (e.g., `origin`). Else `BLOCKED: no remote`.
+  - Determine base branch from `origin/HEAD` (fallback `main`).
+  - Enforce forbidden paths: if changes touch `infra/**`, `.github/**`, `deploy/**`, `**/*.secrets*`, `**/.env*`, `**/secrets/**` → `BLOCKED: forbidden path changes`.
+  - Advisory checks: small PR hint if very large; optional lint/test runs may block if project policy demands.
+- **Steps**:
+  1) Derive title/body:
+     • Title follows convention `[STORY-ID][TASK-ID][COMP-<component>] <summary>` when a single task in `review|in_progress` matches changed `artifacts`; else falls back to a concise `chore: …`.
+     • Body prefers the latest `.codex/runs/<ts>/builder.md`; otherwise auto‑generates sections: Summary, Motivation (from matching story), Details, Scope (from task), Testing (includes Tester PASS/coverage if available), Files Changed, and a draft Changelog line.
+     • Save to `.codex/runs/<ts>/pr_body.md`.
+  2) Branch: use task‑based naming if matched (e.g., `task/<TASK-ID>`), else `chore/auto-pr-<ts>`; `git checkout -B <branch>`.
+  3) Commit: `git add -A`; if changes staged, `git commit -m "<derived title>"`.
+  4) Push: `git push -u origin <branch>`.
+  5) PR: if branch already has a PR, ensure `ready` state; else `gh pr create --base <base> --head <branch> --title <title> --body-file <body>`.
+     • If configured, request reviewers from `reviewer.request_reviewers`.
+- **Output**: PR URL; `.codex/runs/<ts>/pr_body.md` written. Prints terminal line `NEXT: PR created/updated and ready for review` (or `BLOCKED/INFO` with reason).
+
 ---
 
 ## 6) Scenario Coverage (no exceptions)
@@ -278,4 +300,3 @@ Human‑readable backlog (checkbox list), rebuilt from `.codex/tasks/*.md` — *
 - **Spec‑first + fingerprints** keeps code aligned with intent and makes manual edits safe.  
 - **Stateless agents + deterministic selection** allow running **any agent, any time** with **zero parameters**.  
 - **Shadow lineage** enables complete local workflows before any commit/PR, and reconciles later when VCS state exists.
-
