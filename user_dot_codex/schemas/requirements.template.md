@@ -19,7 +19,12 @@ As a <persona>, I want to <do something> so that <achieve goal>.
 <why now>
 
 ### Acceptance
-- <testable criterion aligned to the goal>
+- Success path: <when persona does X, Y happens>
+- Boundary constraints: <limits like size/range/pagination/latency>
+- Negative/error: <invalid input, failure modes with messages/codes>
+- Permissions/roles: <who can/cannot do this; auditing>
+- Observability: <events/logs/metrics to verify outcome>
+- Data constraints: <schema, formats, encoding, i18n>
 
 ### NFR
 - <non-functional>
@@ -27,8 +32,6 @@ As a <persona>, I want to <do something> so that <achieve goal>.
 ### Out of Scope
 - <excluded>
 
-### Persona
-- Name/role: <who>
-- Primary goals: <what they need>
-- Pain points: <frictions/risks>
-- Environment/constraints: <context, devices, compliance>
+### Outcome Measures (optional)
+- KPI/metric: <how success is measured>
+- Baseline/target: <current vs. desired>
