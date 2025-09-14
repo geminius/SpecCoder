@@ -12,3 +12,10 @@ Selection invariants (no parameters):
 1) Latest NEXT in `.codex/runs/*` if still valid
 2) Else first eligible by priority (P0→P3), then id asc, then oldest mtime
 3) Else print INFO and exit
+
+## Interactive Menus
+Agents now open with a small first-turn menu (zero parameters). Defaults to the first option.
+
+- StoryPlanner: New story, Update, Merge, Bootstrap, Scan/propose, Cancel
+- ArchitectPlanner: Make ready, Update components/interfaces, Update policy, Update budgets, Contracts, Analyze questions, Cancel
+- TaskPlanner: Plan eligible, Regenerate specific, Supersede only, Rebuild list, Cancel

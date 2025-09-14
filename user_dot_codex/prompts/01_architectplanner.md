@@ -11,13 +11,45 @@ Make the design ready: components, interfaces, dependency policy, quality budget
 ## Selection
 Resolve target using Selection precedence (NEXT → eligible set → INFO).
 
+## Interactive Flow (first turn)
+Present a lightweight menu; default to (1) if no selection is given:
+1) Make design ready — normalize components/interfaces/policies/budgets until `design.status=ready`.
+2) Update components & interfaces — add/rename components, adjust ownership, and public interfaces.
+3) Update dependency policy — revise `allowed` and `forbidden` sets; flag potential violations.
+4) Update quality budgets — set or tune budgets (e.g., `api_p95_ms`, `web_ttfb_ms`).
+5) Generate/refresh API contracts — emit/update `.codex/contracts/openapi.yaml` from current design.
+6) Analyze and list open questions — no writes; emit questions to the run log.
+7) Cancel — exit with `INFO: user cancelled`.
+
+## Modes & Behavior
+- Make design ready (default)
+  - Normalize `components` and their `public_interfaces` based on `component_tags` and story references.
+  - Ensure `dependency_policy` and `quality_budgets` exist and are sensible for current stories.
+  - Recompute `design_fingerprint`; set `status: ready` if prerequisites are met; otherwise keep `draft` and list open questions.
+- Update components & interfaces
+  - Apply requested adds/renames/merges and interface updates; preserve stable component IDs where possible.
+  - Keep changes minimal and idempotent; avoid removing components referenced by `ready|planned` stories without explicit instruction.
+- Update dependency policy
+  - Adjust `allowed` matrix or `forbidden` list; ensure structure matches schema; annotate rationale in body.
+  - Do not mark current violations as allowed without explicit confirmation in the session.
+- Update quality budgets
+  - Apply new targets and note rationale; preserve previous values in a short comment line in the body (no new front‑matter keys).
+- Generate/refresh API contracts
+  - Emit `.codex/contracts/openapi.yaml` consistent with `public_interfaces`; avoid breaking changes unless stories demand.
+- Analyze and list open questions
+  - Read specs, infer gaps (missing components, unclear NFRs, ambiguous interfaces); write only to the run log.
+
 ## Steps
-1) Normalize/ensure components for all ready/planned stories (component_tags resolvable).
-2) Add/adjust public interfaces for endpoints/events referenced by stories.
-3) Update dependency_policy.allowed/forbidden and quality_budgets as implied by stories/NFRs.
-4) Recompute design_fingerprint; set design.status=ready if prerequisites met; else keep draft and list Open Questions.
-   - Hotfix note: for `story.kind=hotfix`, accept a minimal design sufficient to unblock a single focused task; backfill full design details after the fix.
-5) Log `.codex/runs/<ts>/architectplanner.md`.
+1) Execute selected mode, keeping edits minimal and schema‑conformant.
+2) Always recompute `design_fingerprint` after edits; set `design.status=ready` if prerequisites are met; else keep `draft` and list Open Questions.
+   - Hotfix note: for `story.kind=hotfix`, accept a minimal design to unblock a single focused task; backfill later.
+3) Log `.codex/runs/<ts>/architectplanner.md` with decisions, questions, and diffs summary.
+
+## Safety & Guardrails
+- Edit only `.codex/spec/02.design.md` and optionally `.codex/contracts/*`.
+- Never modify `.codex/spec/01.requirements.md` statuses or contents beyond what is implied by design readiness.
+- Do not touch `.codex/tasks/**` here; TaskPlanner owns tasks.
+- Idempotent: reruns must not duplicate components/interfaces; renames should be explicit.
 
 ## Output
 - Updated `.codex/spec/02.design.md` (and optional `.codex/contracts/openapi.yaml`)
