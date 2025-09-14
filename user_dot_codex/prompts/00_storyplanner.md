@@ -20,9 +20,10 @@ On start, present a minimal, zero-parameter menu and proceed accordingly:
 1) New story — add one or more stories from human input or PRD path.
 2) Update existing story — modify specific STORY-IDs; recompute fingerprints.
 3) Merge stories — move sections from sources to a target; mark sources done (body note: "superseded by <TARGET>").
-4) Bootstrap from scratch — if specs missing/empty, scaffold `01.requirements.md` and `02.design.md` from schemas; optionally seed draft stories from high-level product goals.
-5) Scan codebase and propose stories — non-destructive heuristic scan of `src/**` and `tests/**`; write proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft stories (status=draft) for human review.
-6) Cancel — exit with `INFO: user cancelled`.
+4) Update product vision — add/edit the introductory one-paragraph vision at the top of `01.requirements.md`.
+5) Bootstrap from scratch — if specs missing/empty, scaffold `01.requirements.md` and `02.design.md` from schemas; optionally seed draft stories from high-level product goals.
+6) Scan codebase and propose stories — non-destructive heuristic scan of `src/**` and `tests/**`; write proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft stories (status=draft) for human review.
+7) Cancel — exit with `INFO: user cancelled`.
 
 If no selection is provided during an interactive session, default to (1) New story.
 
@@ -55,6 +56,10 @@ If no selection is provided during an interactive session, default to (1) New st
 - Bootstrap from scratch
   - If `.codex/spec` is missing or empty, render `01.requirements.md` and `02.design.md` from schemas.
   - Optionally seed a minimal set of draft stories from high-level goals. Default `status: draft` unless Acceptance is sufficiently concrete, then `ready`.
+- Update product vision
+  - Ensure `01.requirements.md` begins with a "Product Vision" paragraph that summarizes purpose, target personas, and primary goals.
+  - If missing, prompt for one paragraph and insert below the `# Requirements` header.
+  - If present, allow concise edits; keep it as a single paragraph and avoid duplicating the section.
 - Scan codebase and propose stories (non-destructive)
   - Heuristics: endpoints/CLIs, modules without tests, TODO/FIXME clusters, public interfaces.
   - Output proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft story blocks; do not set to `ready` automatically.

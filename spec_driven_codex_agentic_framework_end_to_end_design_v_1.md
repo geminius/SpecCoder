@@ -112,6 +112,7 @@ Structure: one section per persona with the following fields.
 If absent, stories may include inline Persona sections; StoryPlanner can propose catalog entries in `.codex/runs/<ts>/persona_proposals.md`.
 
 ### 3.1 Story (blocks inside `01.requirements.md`)
+`01.requirements.md` begins with a single-paragraph **Product Vision** summary (purpose, target personas, primary goals), followed by one or more story blocks.
 ```yaml
 id: STORY-012
 type: story
@@ -205,6 +206,10 @@ Human‑readable backlog (checkbox list), rebuilt from `.codex/tasks/*.md` — *
 - **Scan mode**: heuristically mine code/tests/TODOs to draft candidates; write proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and inline draft stories only if explicitly approved.
 - **Outputs**: `01.requirements.md` updated; optional proposals under `.codex/runs/<ts>/*proposals.md`; ensure `02.design.md` exists (`status=draft` if new); run log.
 - **NEXT**: `ArchitectPlanner` if any story is `ready`; else `INFO`.
+
+StoryPlanner also manages the Product Vision paragraph:
+- On bootstrap or when explicitly selected, it inserts/edits a single-paragraph vision at the top of `01.requirements.md` below the main header.
+- This section is not fingerprinted per story; it is informational and should remain concise and stable.
 
 ### 5.2 ArchitectPlanner (`01_architectplanner.md`)
 **Role**: Make design **ready** (components, interfaces, budgets, dependency policy).

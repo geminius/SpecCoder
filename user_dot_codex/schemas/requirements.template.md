@@ -1,5 +1,8 @@
 # Requirements
 
+## Product Vision
+<one-paragraph summary of the product's purpose, target personas, and primary goals>
+
 ## STORY-001 — <title>
 ---
 id: STORY-001
