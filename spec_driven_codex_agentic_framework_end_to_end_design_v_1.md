@@ -24,6 +24,7 @@ repo/
 ├── AGENTS.md                  # project overrides (commands, thresholds)
 ├── .codex/
 │   ├── spec/
+│   │   ├── 00.personas.md         # optional Persona Catalog (inline allowed if absent)
 │   │   ├── 01.requirements.md     # stories (with story_fingerprint)
 │   │   ├── 02.design.md           # architecture (design_fingerprint + policy)
 │   │   └── 03.tasks.md            # derived list view (auto‑rebuilt)
@@ -99,6 +100,17 @@ repo/
 
 ## 3) Schemas (front‑matter)
 
+### 3.0 Persona (optional catalog, `00.personas.md`)
+Structure: one section per persona with the following fields.
+```
+## <Persona Name>
+- role: <title / archetype>
+- primary_goals: [...]
+- pain_points: [...]
+- environment: [devices, constraints, compliance]
+```
+If absent, stories may include inline Persona sections; StoryPlanner can propose catalog entries in `.codex/runs/<ts>/persona_proposals.md`.
+
 ### 3.1 Story (blocks inside `01.requirements.md`)
 ```yaml
 id: STORY-012
@@ -112,12 +124,14 @@ story_fingerprint: "sha256:…"
 kind: feature|refactor|hotfix   # aids policy/selection
 ```
 Sections:
-- User Story (required): "As a <persona>, I want to <do something> so that <meet goal>."
+- User Story (required): "As a <persona>, I want to <do something> so that <meet goal>." (persona referenced by name)
 - Motivation
 - Acceptance (testable bullets aligned to the goal)
 - NFR
 - Out of Scope (optional)
-- Persona (definition: name/role, primary goals, pain points, environment/constraints)
+- Outcome Measures (optional)
+
+Persona definitions live in the optional catalog `00.personas.md`. If the catalog is absent, StoryPlanner accepts inline details during intake but should log proposals to backfill the catalog.
 
 ### 3.2 Design (`02.design.md`)
 ```yaml
@@ -172,12 +186,25 @@ Human‑readable backlog (checkbox list), rebuilt from `.codex/tasks/*.md` — *
 > Each agent obeys the **Selection precedence** (NEXT → eligible set → INFO). Every run ends with exactly one of: **`NEXT: …`**, **`BLOCKED: …`**, or **`INFO: …`** in its run log under `.codex/runs/<ts>/`. All steps are idempotent.
 
 ### 5.1 StoryPlanner (`00_storyplanner.md`)
-**Role**: Seed or augment specs from feature needs; bootstrap `.codex/*`.
+**Role**: Seed or augment specs from feature needs using a persona‑first, outcome‑driven approach; bootstrap `.codex/*`.
 
-- **Preflight**: create `.codex/{spec,tasks,trace,runs,contracts}` if missing; render from user‑level schemas (do **not** copy schemas into the project).
-- **Steps**: intake features → add/append stories (`status=ready`, `tasks_generated=false`, fingerprints computed). Ensure `02.design.md` exists (`status=draft` if new). Log.
-- **Output**: `01.requirements.md`, optionally `02.design.md`, run log.
-- **NEXT**: `ArchitectPlanner`. / **Stop**: INFO if nothing actionable.
+- **Preflight**: create `.codex/{spec,tasks,trace,runs,contracts}` if missing; do not copy schemas into the project. If `00.personas.md` exists, load it for matching; otherwise accept inline personas.
+- **Interactive modes**: New story (default), Update existing story, Merge stories, Bootstrap from scratch, Scan codebase and propose stories (non‑destructive), Cancel.
+- **Flow (New/Update)**:
+  1) Persona check → match against catalog by name/role/goals; if no match and catalog exists, propose an addition (do not auto‑write). If no catalog, validate inline persona and log a proposal to `.codex/runs/<ts>/persona_proposals.md`.
+  2) Outcome framing → clarify the “so that …” outcome as an observable goal.
+  3) Draft the User Story: "As a <persona>, I want to <capability> so that <outcome>."
+  4) Acceptance criteria → 3–7 specific, testable bullets aligned to the outcome; include success, boundary, and one negative/permission case.
+  5) NFR alignment → map to design budgets (latency, availability, accessibility, security).
+  6) Scope shaping → explicitly mark Out of Scope to defer nice‑to‑haves.
+  7) Duplicate/overlap detection → compare normalized triplet (persona, capability, outcome) and tags; if similar, propose update/merge instead of adding.
+  8) Dependency/component hints → derive `depends_on` conservatively and `component_tags`.
+  9) Status and metadata → set `status=ready` (or `draft` if insufficient detail), compute `story_fingerprint`, `tasks_generated=false`, default `priority=P2` (P0 for `kind=hotfix`).
+- **Merge mode**: move sections from source stories to a target; mark sources `done` with a body note "superseded by <TARGET>"; recompute fingerprints.
+- **Bootstrap mode**: if specs are missing/empty, scaffold `01.requirements.md` and `02.design.md`; seed draft stories from PRD; prompt for persona selection; prefer `status=draft`.
+- **Scan mode**: heuristically mine code/tests/TODOs to draft candidates; write proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and inline draft stories only if explicitly approved.
+- **Outputs**: `01.requirements.md` updated; optional proposals under `.codex/runs/<ts>/*proposals.md`; ensure `02.design.md` exists (`status=draft` if new); run log.
+- **NEXT**: `ArchitectPlanner` if any story is `ready`; else `INFO`.
 
 ### 5.2 ArchitectPlanner (`01_architectplanner.md`)
 **Role**: Make design **ready** (components, interfaces, budgets, dependency policy).

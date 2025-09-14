@@ -7,7 +7,7 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
   - `AGENTS.md` — policies, selection rules, guardrails
   - `prompts/00..06` — StoryPlanner → Integrator agent prompts
   - `prompts/07_pr_creator.md` — optional PR creation utility (GitHub CLI)
-  - `schemas/` — story, design, task, and derived list templates
+  - `schemas/` — story, design, task, derived list templates, and a personas catalog template
 - A minimal `demo_repo/` showing the full loop with local‑only “shadow lineage”.
 
 ## Key Features
@@ -55,7 +55,11 @@ Agents run with zero parameters but now start with a small, first‑turn menu to
 ## Story Format (Required)
 - User Story: As a <persona>, I want to <do something> so that <meet goal>.
 - Acceptance: testable bullets aligned to the goal.
-- Persona: name/role, primary goals, pain points, environment/constraints.
+- Persona reference: use a named persona; define personas in the catalog.
+
+## Persona Catalog (Optional)
+- File: `.codex/spec/00.personas.md` (see `user_dot_codex/schemas/personas.template.md`).
+- StoryPlanner matches stories to catalog personas by name/role/goals. If absent, it accepts inline details during intake and writes proposals to `.codex/runs/<ts>/persona_proposals.md` to backfill the catalog.
 
 ## Common Use Cases
 - New feature: Plan stories/design → generate small tasks → TDD via Builder → test/review/integrate.

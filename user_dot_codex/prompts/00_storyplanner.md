@@ -6,6 +6,7 @@ Seed or augment project specs from feature needs; bootstrap `.codex/*`.
 ## Preflight
 - Ensure `.codex/{spec,tasks,trace,runs,contracts}` exist; create if missing.
 - Do NOT copy schemas into project. Render outputs using schema paths from AGENTS.md.
+ - Optional Persona Catalog: if `.codex/spec/00.personas.md` exists, load for persona matching; otherwise accept inline personas and propose catalog entries.
 
 ## Inputs
 - Interactive menu + Q&A, or a feature file path (PRD/bullets).
@@ -32,10 +33,14 @@ If no selection is provided during an interactive session, default to (1) New st
   - Sections (required unless noted):
     - User Story: "As a <persona>, I want to <do something> so that <meet goal>."
     - Motivation (why now)
-    - Acceptance (testable bullets aligned to the goal)
+    - Acceptance (3–7 testable bullets aligned to the goal), covering:
+      • Success path • Boundary constraints • Negative/error • Permissions/roles • Observability • Data constraints (as applicable)
     - NFR
     - Out of Scope (optional)
-    - Persona: name/role, primary goals, pain points, environment/constraints
+    - Outcome Measures (optional)
+  - Persona handling:
+    - If `00.personas.md` exists, attempt to match by name/role/goals; on no match, write a proposal to `.codex/runs/<ts>/persona_proposals.md` and continue with inline persona (no auto‑write to catalog).
+    - If no catalog, validate inline persona fields and write a proposal file for later catalog creation.
   - Compute and set `story_fingerprint`.
   - Dedupe by normalized user story/title to avoid duplicates.
 - Update story
@@ -53,6 +58,7 @@ If no selection is provided during an interactive session, default to (1) New st
 - Scan codebase and propose stories (non-destructive)
   - Heuristics: endpoints/CLIs, modules without tests, TODO/FIXME clusters, public interfaces.
   - Output proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft story blocks; do not set to `ready` automatically.
+  - Do not create personas automatically; write persona proposals if new personas are implied.
 
 ## Steps
 1) Execute the selected mode. For story writes, append/update in `.codex/spec/01.requirements.md` with dedupe and `story_fingerprint` computed.
