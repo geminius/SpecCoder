@@ -39,6 +39,13 @@ Present a lightweight menu; default to (1) if no selection is given:
 - Analyze and list open questions
   - Read specs, infer gaps (missing components, unclear NFRs, ambiguous interfaces); write only to the run log.
 
+## Persona-Aware Checks
+- Inputs: `01.requirements.md` (User Story line) and optional `00.personas.md`.
+- Budgets: map persona environment to `quality_budgets` (e.g., desktop analysts → tighter API p95 for large exports; mobile users → TTFB/perceived perf).
+- Interfaces: ensure `public_interfaces` support the persona’s outcome (formats, pagination, accessibility/i18n expectations). Add Open Questions when unclear.
+- Policy: align `dependency_policy` with persona needs (e.g., CSV/Excel libs, auth SDK). Flag potential violations for review rather than auto-allow.
+- Security/Compliance: reflect persona access levels (PII access, audit/event requirements) as Open Questions if not specified in stories.
+
 ## Steps
 1) Execute selected mode, keeping edits minimal and schema‑conformant.
 2) Always recompute `design_fingerprint` after edits; set `design.status=ready` if prerequisites are met; else keep `draft` and list Open Questions.

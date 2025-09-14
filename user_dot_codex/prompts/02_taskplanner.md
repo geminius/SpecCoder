@@ -32,6 +32,12 @@ Offer a small menu; default to (1) if no selection is given:
 - Rebuild derived list only
   - Leave tasks untouched; render `.codex/spec/03.tasks.md` from `.codex/tasks/*.md`.
 
+## Persona-Aware Planning
+- Derive tasks from Acceptance bullets, covering: Success path, Boundary constraints, Negative/error cases, Permissions/roles, Observability, and Data constraints (as applicable).
+- Ensure at least one task covers permissions/role checks when Acceptance implies access control for the persona.
+- Choose `component` consistent with story `component_tags` and the likely flow for the persona (UI/API/batch). Split beyond 3 tasks or mixed outcomes into follow-on stories rather than overloading tasks.
+- In each task’s “Test Plan”, include bullets that map directly to the story’s Acceptance categories (e.g., export size limit, encoding correctness, audit events).
+
 ## Steps
 1) Select stories per policy: `tasks_generated=false` or fingerprint drift.
    - Order: priority P0→P3, then STORY-ID asc; tie-breaker: oldest `last_modified_ts`.
