@@ -17,5 +17,5 @@ Selection invariants (no parameters):
 Agents now open with a small first-turn menu (zero parameters). Defaults to the first option.
 
 - StoryPlanner: New story, Update, Merge, Bootstrap, Scan/propose, Cancel
-- ArchitectPlanner: Make ready, Update components/interfaces, Update policy, Update budgets, Contracts, Analyze questions, Cancel
+- ArchitecturePlanner: Make ready, Update components/interfaces, Update policy, Update budgets, Contracts, Analyze questions, Cancel
 - TaskPlanner: Plan eligible, Regenerate specific, Supersede only, Rebuild list, Cancel

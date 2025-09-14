@@ -5,7 +5,7 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
 ## What’s Inside
 - User‑level defaults under `user_dot_codex/` (copy to `~/.codex/`):
   - `AGENTS.md` — policies, selection rules, guardrails
-  - `prompts/00..06` — StoryPlanner → Integrator agent prompts
+- `prompts/00..06` — StoryPlanner → Integrator agent prompts
   - `prompts/07_pr_creator.md` — optional PR creation utility (GitHub CLI)
   - `schemas/` — story, design, task, derived list templates, and a personas catalog template
 - A minimal `demo_repo/` showing the full loop with local‑only “shadow lineage”.
@@ -21,7 +21,7 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
 ## Quick Start
 1) Copy `user_dot_codex/` → `~/.codex/`.
 2) In your project, run agents in order or jump in anywhere:
-   - StoryPlanner → ArchitectPlanner → TaskPlanner → Builder → Tester → Reviewer → Integrator
+   - StoryPlanner → ArchitecturePlanner → TaskPlanner → Builder → Tester → Reviewer → Integrator
 3) No GitHub? Everything still works locally; Integrator records a shadow ID.
 4) On GitHub? Use the optional PR flags in `AGENTS.md` or run `07_pr_creator.md` to open a ready‑for‑review PR with an auto‑generated description.
 
@@ -36,7 +36,7 @@ Agents run with zero parameters but now start with a small, first‑turn menu to
   - Scan codebase and propose stories (non‑destructive; writes `.codex/runs/<ts>/story_backfill_proposals.md` and/or draft stories)
   - Cancel
 
-- ArchitectPlanner
+- ArchitecturePlanner
   - Make design ready (default)
   - Update components & interfaces
   - Update dependency policy

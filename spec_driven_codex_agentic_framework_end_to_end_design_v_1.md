@@ -44,7 +44,7 @@ repo/
 
 ### 2.1 Agent registry
 - StoryPlanner: `00_storyplanner.md`
-- ArchitectPlanner: `01_architectplanner.md`
+- ArchitecturePlanner: `01_architectureplanner.md`
 - TaskPlanner: `02_taskplanner.md`
 - Builder: `03_builder.md`
 - Tester: `04_tester.md`
@@ -205,16 +205,16 @@ Human‑readable backlog (checkbox list), rebuilt from `.codex/tasks/*.md` — *
 - **Bootstrap mode**: if specs are missing/empty, scaffold `01.requirements.md` and `02.design.md`; seed draft stories from PRD; prompt for persona selection; prefer `status=draft`.
 - **Scan mode**: heuristically mine code/tests/TODOs to draft candidates; write proposals to `.codex/runs/<ts>/story_backfill_proposals.md` and inline draft stories only if explicitly approved.
 - **Outputs**: `01.requirements.md` updated; optional proposals under `.codex/runs/<ts>/*proposals.md`; ensure `02.design.md` exists (`status=draft` if new); run log.
-- **NEXT**: `ArchitectPlanner` if any story is `ready`; else `INFO`.
+- **NEXT**: `ArchitecturePlanner` if any story is `ready`; else `INFO`.
 
 StoryPlanner also manages the Product Vision paragraph:
 - On bootstrap or when explicitly selected, it inserts/edits a single-paragraph vision at the top of `01.requirements.md` below the main header.
 - This section is not fingerprinted per story; it is informational and should remain concise and stable.
 
-### 5.2 ArchitectPlanner (`01_architectplanner.md`)
+### 5.2 ArchitecturePlanner (`01_architectureplanner.md`)
 **Role**: Make design **ready** (components, interfaces, budgets, dependency policy).
 
-- **Preflight**: recompute `design_fingerprint`; ensure components/interfaces exist for `ready|planned` stories; update budgets/policy.
+- **Preflight**: recompute `design_fingerprint`; ensure components/interfaces exist for stories (prioritize `ready|planned`; include `draft` to raise Open Questions); update budgets/policy.
 - **Steps**: normalize `component_tags` → add/adjust public interfaces → update `dependency_policy`/budgets → set `status=ready` if prerequisites satisfied; else keep `draft` + Open Questions. Log.
 - **Output**: updated `02.design.md`, optional `contracts/openapi.yaml`, run log.
 - **NEXT**: `TaskPlanner` if `design=ready`; else `BLOCKED` with questions.
@@ -308,12 +308,12 @@ StoryPlanner also manages the Product Vision paragraph:
 
 | Scenario | Supported Path |
 |---|---|
-| **New feature** | StoryPlanner → ArchitectPlanner → TaskPlanner → Builder → Tester → Reviewer → Integrator |
+| **New feature** | StoryPlanner → ArchitecturePlanner → TaskPlanner → Builder → Tester → Reviewer → Integrator |
 | **Modify feature via Codex/spec** | Edit story/design → fingerprints drift → TaskPlanner supersedes → Builder refuses stale → normal flow |
 | **Manual spec edits** | Same as above; self‑heals via fingerprints |
 | **Manual code edits (no task)** | Reviewer auto‑creates **retrofit task**; blocks until built/tested/integrated |
 | **Add new source files** | Treated as orphan diff → retrofit task |
-| **Hotfix** | `story.kind=hotfix`, P0, one‑task flow; ArchitectPlanner can backfill later |
+| **Hotfix** | `story.kind=hotfix`, P0, one‑task flow; ArchitecturePlanner can backfill later |
 | **Parallel work** | Deterministic selection (priority,id,age) prevents ambiguity; small PRs limit risk |
 | **Reruns/new sessions** | Stateless agents read specs/tasks/logs; consistent via selection precedence |
 | **No GitHub / no commits** | Full loop works locally; Integrator records **shadow lineage** and flips statuses |

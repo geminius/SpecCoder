@@ -1,4 +1,4 @@
-# 01_architectplanner — ArchitectPlanner
+# 01_architectureplanner — ArchitecturePlanner
 
 ## Goal
 Make the design ready: components, interfaces, dependency policy, quality budgets.
@@ -24,7 +24,7 @@ Present a lightweight menu; default to (1) if no selection is given:
 ## Modes & Behavior
 - Make design ready (default)
   - Normalize `components` and their `public_interfaces` based on `component_tags` and story references.
-  - Ensure `dependency_policy` and `quality_budgets` exist and are sensible for current stories.
+  - Ensure `dependency_policy` and `quality_budgets` exist and are sensible for current stories (prioritize ready/planned; include drafts for Open Questions).
   - Recompute `design_fingerprint`; set `status: ready` if prerequisites are met; otherwise keep `draft` and list open questions.
 - Update components & interfaces
   - Apply requested adds/renames/merges and interface updates; preserve stable component IDs where possible.
