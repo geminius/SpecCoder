@@ -16,7 +16,8 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
 ## Preflight
 - Compute effective toggle: spec flag XOR env override. If disabled → `INFO: github integration disabled`.
 - Require `gh` installed/authenticated; otherwise `BLOCKED: gh not available`.
-- Ensure project `AGENTS.md` has an `integrations.github` block. If absent, append the default block from user defaults, then `BLOCKED: github integration not configured`. If present but `owner` or `repo` empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
+- Run `gh auth status` first (no auto-login). Missing `repo`/`project` scopes or auth failure → `BLOCKED: gh not authenticated` with guidance to run `gh auth login --scopes repo,project`. 
+- Ensure project `AGENTS.md` has an `integrations.github` block; if absent, append the default block and `BLOCKED: github integration not configured`. If present but `owner` or `repo` empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
 - Optional project settings: `project_view`, `default_column`.
 
 ## Candidate Tasks

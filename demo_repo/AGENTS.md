@@ -9,6 +9,16 @@ coverage_min: 80
 
 components: [auth, api, notify, db]
 
+# GitHub integration (demo settings)
+integrations:
+  github:
+    enabled: true
+    owner: geminius
+    repo: SpecCoder
+    project_view: "test-project"
+    default_column: "Todo"
+    sync_policy: push_only
+
 # Optional PR automation (kept disabled in demo)
 builder.auto_open_pr: false
 builder.open_pr_draft: true

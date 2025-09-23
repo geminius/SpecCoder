@@ -308,7 +308,7 @@ StoryPlanner also manages the Product Vision paragraph:
 **Role**: Materialize `.codex/tasks` entries as GitHub issues (and refresh metadata) when integration is enabled.
 
 - **Selection**: tasks in `ready|in_progress|review` with missing `github.issue_number`, or with `github.pending_update=true`.
-- **Preflight**: compute effective toggle (spec flag XOR env override). If disabled → `INFO`. Otherwise require authenticated `gh` CLI. If project `AGENTS.md` lacks an `integrations.github` block, append the template from user defaults, then emit `BLOCKED: github integration not configured`. If the block exists but `owner`/`repo` are empty, emit `BLOCKED: github repo not configured` and request the user populate them before rerunning.
+- **Preflight**: compute effective toggle (spec flag XOR env override). If disabled → `INFO`. Run `gh auth status` first (do not auto-login). Missing `repo`/`project` scopes or auth failure → `BLOCKED: gh not authenticated` with instructions to run `gh auth login --scopes repo,project`. Ensure project `AGENTS.md` has an `integrations.github` block; if missing, append the template and emit `BLOCKED: github integration not configured`. If the block exists but `owner`/`repo` are empty, emit `BLOCKED: github repo not configured` and ask the user to populate them before rerunning.
 - **Steps**:  
   1) Build context: load story title, gather Scope/Test Plan excerpts, derive labels (`story/<story_id>`, `component/<component>`, `priority/P#`, plus status label with hyphenated state).  
   2) Determine action: for existing issues call `gh issue view --json number,url,updatedAt,state,title,body` (404 → recreate; hash drift → note in `github.sync_notes` and leave `pending_update=true`).  
