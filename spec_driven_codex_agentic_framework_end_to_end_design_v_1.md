@@ -96,6 +96,11 @@ repo/
 - Commands (override in project): `install`, `lint`, `test`, `test:it`, `coverage_min` (default 80).
 - Commit/PR conventions (when VCS is used): title `"[STORY‑ID][TASK‑ID][COMP‑<component>] <summary>"`.
 
+### 2.9 Optional GitHub integration toggle
+- Configure under `integrations.github` in project `AGENTS.md`: `enabled` (default `false`), `owner`, `repo`, optional `project_view` + `default_column`, and `sync_policy` (`push_only`, `two_way`, `manual`).
+- Sessions may override with `CODEX_GITHUB_ENABLED=0|1` to flip the switch without editing specs.
+- When disabled, GitHub-aware agents exit with `INFO` and fall back to the local-only flow.
+
 ---
 
 ## 3) Schemas (front‑matter)
@@ -159,6 +164,16 @@ superseded_by: null
 # Added for local‑only & deterministic review
 artifact_fingerprints: {}         # path -> sha256(content) at time of "review"
 review_baseline_sha: ""           # sha256 over sorted artifact_fingerprints
+# GitHub linkage (optional; populated when integrations.github.enabled=true)
+github:
+  issue_number: null
+  issue_url: ""
+  project_item_id: ""
+  last_remote_updated_at: ""
+  last_local_sync_ts: ""
+  status_snapshot_sha: ""        # hash of remote title/body/status
+  pending_update: false
+  sync_notes: []
 # Tester metadata (optional)
 tester_pass: null                  # true|false|null
 last_test_run_ts: null
@@ -264,24 +279,47 @@ StoryPlanner also manages the Product Vision paragraph:
 - **NEXT**: `Integrator` when clean; else `BLOCKED`.
 
 ### 5.7 Integrator (`06_integrator.md`)
-**Role**: Merge/finish safely; update traceability & changelog. Supports **local‑only** via shadows.
+**Role**: Merge/finish safely; update traceability & changelog. Supports local-only shadows and optional GitHub issue sync.
 
 - **Local/Remote detection** (automatic, no flags):  
   - If no remote/PR, or no new commit was created, or tree is dirty → **local mode**. Else **VCS mode**.
-- **Preflight**: enforce `integrator.require_tester_log/require_tester` if enabled; block on FAIL/missing.
+- **Preflight**: enforce `integrator.require_tester_log/require_tester` if enabled; block on FAIL/missing. When GitHub integration is on, require authenticated `gh`; if CLI/auth unavailable, flag affected tasks (`github.pending_update=true`), emit `INFO: github sync skipped`, and continue with local bookkeeping.
+- **GitHub reconciliation (if enabled)**:  
+  1) Batch-refresh tracked issues (`gh issue view`, cache under `.codex/trace/github_cache.json`).  
+  2) Compare remote state to `github.status_snapshot_sha`: missing issues → set task `status=blocked` with reason "github issue missing" and note in `github.sync_notes`; remote closures with matching fingerprints → safe to complete locally; closures with drift → set `blocked`, log drift.  
+  3) Remote reopen/retitle/comment updates refresh `status_snapshot_sha` and set `github.pending_update=true` when local follow-up is required.  
+  4) Respect `sync_policy`: `manual` records drift only; `push_only`/`two_way` queue close/reopen/comment/project actions for the push step.
 - **Steps**:  
-  1) For each task in `review` with gates satisfied:  
-     • **VCS mode**: require merged PR; use real `commit_sha`.  
+  1) Reconcile any `shadow:<hash>` lineage entries when real commits now exist (idempotent; no status flips).  
+  2) For each task in `review` with gates satisfied:  
+     • **VCS mode**: require merged PR; capture real `commit_sha`.  
      • **Local mode**: compute `shadow_id = review_baseline_sha`.  
      Append lineage entry (story→task→files/tests→`commit_or_shadow`).  
-  2) Flip task `review → done`; if all story tasks are `done`, flip story `in_progress → done`.  
-  3) Refresh `03.tasks.md`.  
-  4) Update `CHANGELOG.md` (include `commit_sha` *or* `shadow:<hash>`).  
-  5) Write integrator run log.
-- **Output**: lineage/changelog updates; statuses flipped; integrator log.
+  3) Flip task `review → done`; if all story tasks are `done`, flip story `in_progress → done`.  
+  4) Refresh `03.tasks.md`.  
+  5) Update `CHANGELOG.md` (include `commit_sha` *or* `shadow:<hash>`).  
+  6) **GitHub push (if enabled & policy allows)**: apply queued close/reopen/project moves (`gh project item-move`), add story cross-links/comments, update issue bodies as needed, then clear `github.pending_update`, stamp `last_local_sync_ts`, recompute `status_snapshot_sha`.  
+  7) Write integrator run log summarizing status flips and sync results.
+- On network/auth failure during step 6, leave `github.pending_update=true`, append details to `github.sync_notes`, and finish local tasks so the run remains idempotent.
+- **Output**: lineage/changelog updates; statuses flipped; GitHub issues/project items synchronized when possible; drift logged otherwise.
 - **NEXT**: end of chain.
 
-### 5.8 PR Creator (utility) (`07_pr_creator.md`)
+### 5.8 GitHubIssueCreator (`08_githubissuecreator.md`)
+**Role**: Materialize `.codex/tasks` entries as GitHub issues (and refresh metadata) when integration is enabled.
+
+- **Selection**: tasks in `ready|in_progress|review` with missing `github.issue_number`, or with `github.pending_update=true`.
+- **Preflight**: compute effective toggle (spec flag XOR env override). If disabled → `INFO`. Otherwise require authenticated `gh` CLI. If project `AGENTS.md` lacks an `integrations.github` block, append the template from user defaults, then emit `BLOCKED: github integration not configured`. If the block exists but `owner`/`repo` are empty, emit `BLOCKED: github repo not configured` and request the user populate them before rerunning.
+- **Steps**:  
+  1) Build context: load story title, gather Scope/Test Plan excerpts, derive labels (`story/<story_id>`, `component/<component>`, `priority/P#`, plus status label with hyphenated state).  
+  2) Determine action: for existing issues call `gh issue view --json number,url,updatedAt,state,title,body` (404 → recreate; hash drift → note in `github.sync_notes` and leave `pending_update=true`).  
+  3) Compose body via `mktemp` (Summary, Story link, Scope, Acceptance/Test highlights, Open Questions, Local Status). Use `gh issue create` for new issues or `gh issue edit` + follow-up `gh issue view` for refresh; update `issue_number`, `issue_url`, `last_remote_updated_at`.  
+  4) Project sync (optional): add missing cards with `gh project item-add`, move to status-mapped column via `gh project item-move`, store `project_item_id`.  
+  5) Update snapshot/timestamps: compute `status_snapshot_sha`, set `last_local_sync_ts`, clear `pending_update` if successful, append concise `github.sync_notes` entry.  
+  6) Persist task file and append a run log entry (`.codex/runs/<ts>/github_issue_creator.md`).
+- **Output**: task metadata updated with GitHub linkage; run log noting created/refreshed issues.
+- **NEXT**: `INFO` (agent does not auto-chain).
+
+### 5.9 PR Creator (utility) (`07_pr_creator.md`)
 **Role**: Commit current changes and open a ready‑for‑review PR via GitHub CLI. Optional; does not affect the Story→Design→Task→Build→Test→Review→Integrate chain.
 
 - **Preflight/Guardrails**:
@@ -317,6 +355,7 @@ StoryPlanner also manages the Product Vision paragraph:
 | **Parallel work** | Deterministic selection (priority,id,age) prevents ambiguity; small PRs limit risk |
 | **Reruns/new sessions** | Stateless agents read specs/tasks/logs; consistent via selection precedence |
 | **No GitHub / no commits** | Full loop works locally; Integrator records **shadow lineage** and flips statuses |
+| **GitHub issue mirroring** | Toggle on: GitHubIssueCreator creates issues, Integrator reconciles status/boards; toggle off or offline: agents defer with `INFO` and keep work local |
 
 ---
 

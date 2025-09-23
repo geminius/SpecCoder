@@ -8,6 +8,8 @@
 - Tester: 04_tester.md
 - Reviewer: 05_reviewer.md
 - Integrator: 06_integrator.md
+- GitHubIssueCreator: 08_githubissuecreator.md  # optional
+- PRCreator: 07_pr_creator.md  # optional utility
 
 ## Schemas (authoritative)
 - story: ~/.codex/schemas/requirements.template.md
@@ -46,6 +48,16 @@
 - integrator.require_tester_log: false
 - reviewer.block_without_changelog: false
 - integrator.require_changelog_entry: false
+
+## Integrations (optional)
+- github:
+  - enabled: false  # override per-repo via `integrations.github` block
+  - owner: ""
+  - repo: ""
+  - project_view: ""  # optional project ID
+  - default_column: "Todo"
+  - sync_policy: push_only  # allowed: push_only | two_way | manual
+  - env_override: CODEX_GITHUB_ENABLED=0|1
 
 ## PR Automation (optional)
 # Builder can optionally open a draft PR after moving a task to review.
