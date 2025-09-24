@@ -33,8 +33,8 @@ Order by priority P0→P3, then TASK-ID asc (tie-breaker: oldest last_modified_t
 7) Refresh `.codex/spec/03.tasks.md` if needed.
 
 ## PR Automation (optional)
-- If `builder.auto_open_pr=true`, attempt to open a draft PR using GitHub CLI when conditions are met:
-  - Remote exists (`builder.pr_remote`); `gh` is available; a PR for the current branch does not already exist.
+- If `builder.auto_open_pr=true`, attempt to open a draft PR via MCP GitHub when conditions are met (use tools from `integrations.github.tools`):
+  - Remote exists (`builder.pr_remote`); an MCP GitHub server is available; a PR for the current branch does not already exist.
   - Use title: `[STORY-ID][TASK-ID][COMP-<component>] <summary>` (per AGENTS.md conventions).
   - Use body file: `.codex/runs/<ts>/builder.md`.
   - Draft vs ready follows `builder.open_pr_draft`.

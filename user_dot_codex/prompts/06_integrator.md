@@ -9,7 +9,7 @@ Finish safely; update lineage and changelog; mirror GitHub issues/projects when 
 - `CHANGELOG.md` (project root)
 - Policies: integrator.require_tester_log, require_tester
 - Optional GitHub config: `integrations.github` block from `AGENTS.md` + env override `CODEX_GITHUB_ENABLED`
-- GitHub CLI (`gh`) when integration is enabled
+- MCP GitHub server when integration is enabled
 
 ## Selection
 Resolve target using Selection precedence (NEXT → eligible set → INFO).
@@ -24,12 +24,12 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
   - Tester status != PASS → `BLOCKED: Tester not passing`.
 - Fingerprint drift: if any candidate task in `review` has story/design fingerprint drift vs current specs → `BLOCKED: fingerprint drift`.
 - GitHub readiness (if integration enabled):
-  - Require authenticated `gh` CLI; failures → mark tasks `github.pending_update=true`, log `INFO: github sync skipped`, continue with local duties.
+  - Require an available, authorized MCP GitHub server; on failure → mark tasks `github.pending_update=true`, log `INFO: github sync skipped`, continue with local duties.
   - Cache effective policy: `enabled` = spec flag XOR env override.
 
 ## GitHub Reconciliation (if enabled)
 1) Identify candidate tasks with `github.issue_number`.
-2) Batch fetch issue metadata (`gh issue view`); cache responses under `.codex/trace/github_cache.json` for idempotency.
+2) Batch fetch issue metadata via MCP (use `integrations.github.tools.issue_get`); cache responses under `.codex/trace/github_cache.json` for idempotency.
 3) Compare remote state hash against `github.status_snapshot_sha`:
    - Missing issue → set task `status=blocked` with reason "github issue missing" and append note to `github.sync_notes`.
    - Remote closed + fingerprints match → allow local completion.
@@ -51,7 +51,7 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
 4) Refresh `.codex/spec/03.tasks.md`.
 5) Update `CHANGELOG.md` (story/task IDs, impact; include `commit_sha` or `shadow:<hash>`).
 6) GitHub push (if enabled & policy allows):
-   - Apply queued actions: close/reopen issues, move project cards (`gh project item-move`), add/update story cross-links or comments.
+   - Apply queued actions: close/reopen issues, move project cards via MCP project tools (use `integrations.github.tools.project_move_item`), add/update story cross-links or comments.
    - Clear `github.pending_update` for successful actions; stamp `last_local_sync_ts` + new `status_snapshot_sha`.
    - On failure, leave `pending_update=true`, append details to `github.sync_notes`, and continue.
 7) Write `.codex/runs/<ts>/integrator.md` (summaries, sync results).

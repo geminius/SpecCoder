@@ -96,10 +96,12 @@ repo/
 - Commands (override in project): `install`, `lint`, `test`, `test:it`, `coverage_min` (default 80).
 - Commit/PR conventions (when VCS is used): title `"[STORY‑ID][TASK‑ID][COMP‑<component>] <summary>"`.
 
-### 2.9 Optional GitHub integration toggle
+### 2.9 Optional GitHub integration (via MCP)
 - Configure under `integrations.github` in project `AGENTS.md`: `enabled` (default `false`), `owner`, `repo`, optional `project_view` + `default_column`, and `sync_policy` (`push_only`, `two_way`, `manual`).
 - Sessions may override with `CODEX_GITHUB_ENABLED=0|1` to flip the switch without editing specs.
-- When disabled, GitHub-aware agents exit with `INFO` and fall back to the local-only flow.
+- All GitHub operations (issues, projects, PRs) are performed via an MCP GitHub server available in the Codex session (default `server_id: github`).
+- When disabled or the MCP server is unavailable, GitHub-aware agents exit with `INFO` and fall back to the local-only flow.
+ - Tool name mapping: projects may override MCP tool identifiers in `AGENTS.md` under `integrations.github.tools` (e.g., `issue_get`, `issue_create`, `pr_create`, `project_move_item`).
 
 ---
 
@@ -283,9 +285,9 @@ StoryPlanner also manages the Product Vision paragraph:
 
 - **Local/Remote detection** (automatic, no flags):  
   - If no remote/PR, or no new commit was created, or tree is dirty → **local mode**. Else **VCS mode**.
-- **Preflight**: enforce `integrator.require_tester_log/require_tester` if enabled; block on FAIL/missing. When GitHub integration is on, require authenticated `gh`; if CLI/auth unavailable, flag affected tasks (`github.pending_update=true`), emit `INFO: github sync skipped`, and continue with local bookkeeping.
+- **Preflight**: enforce `integrator.require_tester_log/require_tester` if enabled; block on FAIL/missing. When GitHub integration is on, require an available, authorized MCP GitHub server; if unavailable, flag affected tasks (`github.pending_update=true`), emit `INFO: github sync skipped`, and continue with local bookkeeping.
 - **GitHub reconciliation (if enabled)**:  
-  1) Batch-refresh tracked issues (`gh issue view`, cache under `.codex/trace/github_cache.json`).  
+  1) Batch-refresh tracked issues via MCP (e.g., `github.getIssue`), cache under `.codex/trace/github_cache.json`.  
   2) Compare remote state to `github.status_snapshot_sha`: missing issues → set task `status=blocked` with reason "github issue missing" and note in `github.sync_notes`; remote closures with matching fingerprints → safe to complete locally; closures with drift → set `blocked`, log drift.  
   3) Remote reopen/retitle/comment updates refresh `status_snapshot_sha` and set `github.pending_update=true` when local follow-up is required.  
   4) Respect `sync_policy`: `manual` records drift only; `push_only`/`two_way` queue close/reopen/comment/project actions for the push step.
@@ -298,32 +300,32 @@ StoryPlanner also manages the Product Vision paragraph:
   3) Flip task `review → done`; if all story tasks are `done`, flip story `in_progress → done`.  
   4) Refresh `03.tasks.md`.  
   5) Update `CHANGELOG.md` (include `commit_sha` *or* `shadow:<hash>`).  
-  6) **GitHub push (if enabled & policy allows)**: apply queued close/reopen/project moves (`gh project item-move`), add story cross-links/comments, update issue bodies as needed, then clear `github.pending_update`, stamp `last_local_sync_ts`, recompute `status_snapshot_sha`.  
+  6) **GitHub push (if enabled & policy allows)**: apply queued close/reopen/project moves (via MCP project tools), add story cross-links/comments, update issue bodies as needed, then clear `github.pending_update`, stamp `last_local_sync_ts`, recompute `status_snapshot_sha`.  
   7) Write integrator run log summarizing status flips and sync results.
 - On network/auth failure during step 6, leave `github.pending_update=true`, append details to `github.sync_notes`, and finish local tasks so the run remains idempotent.
 - **Output**: lineage/changelog updates; statuses flipped; GitHub issues/project items synchronized when possible; drift logged otherwise.
 - **NEXT**: end of chain.
 
 ### 5.8 GitHubIssueCreator (`08_githubissuecreator.md`)
-**Role**: Materialize `.codex/tasks` entries as GitHub issues (and refresh metadata) when integration is enabled.
+**Role**: Materialize `.codex/tasks` entries as GitHub issues (and refresh metadata) via MCP when integration is enabled.
 
 - **Selection**: tasks in `ready|in_progress|review` with missing `github.issue_number`, or with `github.pending_update=true`.
-- **Preflight**: compute effective toggle (spec flag XOR env override). If disabled → `INFO`. Run `gh auth status` first (do not auto-login). Missing `repo`/`project` scopes or auth failure → `BLOCKED: gh not authenticated` with instructions to run `gh auth login --scopes repo,project`. Ensure project `AGENTS.md` has an `integrations.github` block; if missing, append the template and emit `BLOCKED: github integration not configured`. If the block exists but `owner`/`repo` are empty, emit `BLOCKED: github repo not configured` and ask the user to populate them before rerunning.
+- **Preflight**: compute effective toggle (spec flag XOR env override). If disabled → `INFO`. Require an MCP GitHub server in the session (default `server_id: github`) authorized for the target repo. Ensure project `AGENTS.md` has an `integrations.github` block; if missing, append the template and emit `BLOCKED: github integration not configured`. If the block exists but `owner`/`repo` are empty, emit `BLOCKED: github repo not configured` and ask the user to populate them before rerunning.
 - **Steps**:  
   1) Build context: load story title, gather Scope/Test Plan excerpts, derive labels (`story/<story_id>`, `component/<component>`, `priority/P#`, plus status label with hyphenated state).  
-  2) Determine action: for existing issues call `gh issue view --json number,url,updatedAt,state,title,body` (404 → recreate; hash drift → note in `github.sync_notes` and leave `pending_update=true`).  
-  3) Compose body via `mktemp` (Summary, Story link, Scope, Acceptance/Test highlights, Open Questions, Local Status). Use `gh issue create` for new issues or `gh issue edit` + follow-up `gh issue view` for refresh; update `issue_number`, `issue_url`, `last_remote_updated_at`.  
-  4) Project sync (optional): add missing cards with `gh project item-add`, move to status-mapped column via `gh project item-move`, store `project_item_id`.  
+  2) Determine action: for existing issues call MCP tool to fetch (e.g., `github.getIssue` → number,url,updatedAt,state,title,body`). 404 → recreate; hash drift → note in `github.sync_notes` and leave `pending_update=true`.  
+  3) Compose body via `mktemp` (Summary, Story link, Scope, Acceptance/Test highlights, Open Questions, Local Status). Use MCP to create/update issues (e.g., `github.createIssue` / `github.updateIssue`) and then refresh metadata; update `issue_number`, `issue_url`, `last_remote_updated_at`.  
+  4) Project sync (optional): add missing cards and move to status-mapped column via MCP project tools (e.g., `github.projects.addItem` / `github.projects.moveItem`); store `project_item_id`.  
   5) Update snapshot/timestamps: compute `status_snapshot_sha`, set `last_local_sync_ts`, clear `pending_update` if successful, append concise `github.sync_notes` entry.  
   6) Persist task file and append a run log entry (`.codex/runs/<ts>/github_issue_creator.md`).
 - **Output**: task metadata updated with GitHub linkage; run log noting created/refreshed issues.
 - **NEXT**: `INFO` (agent does not auto-chain).
 
 ### 5.9 PR Creator (utility) (`07_pr_creator.md`)
-**Role**: Commit current changes and open a ready‑for‑review PR via GitHub CLI. Optional; does not affect the Story→Design→Task→Build→Test→Review→Integrate chain.
+**Role**: Commit current changes and open a ready‑for‑review PR via MCP GitHub server. Optional; does not affect the Story→Design→Task→Build→Test→Review→Integrate chain.
 
 - **Preflight/Guardrails**:
-  - Require GitHub CLI installed and authenticated (`repo` scope). Else `BLOCKED: gh not installed/authenticated`.
+  - Require an MCP GitHub server available and authorized for the target repo. Else `BLOCKED: MCP GitHub unavailable`.
   - Require a reachable remote (e.g., `origin`). Else `BLOCKED: no remote`.
   - Determine base branch from `origin/HEAD` (fallback `main`).
   - Enforce forbidden paths: if changes touch `infra/**`, `.github/**`, `deploy/**`, `**/*.secrets*`, `**/.env*`, `**/secrets/**` → `BLOCKED: forbidden path changes`.
@@ -336,8 +338,8 @@ StoryPlanner also manages the Product Vision paragraph:
   2) Branch: use task‑based naming if matched (e.g., `task/<TASK-ID>`), else `chore/auto-pr-<ts>`; `git checkout -B <branch>`.
   3) Commit: `git add -A`; if changes staged, `git commit -m "<derived title>"`.
   4) Push: `git push -u origin <branch>`.
-  5) PR: if branch already has a PR, ensure `ready` state; else `gh pr create --base <base> --head <branch> --title <title> --body-file <body>`.
-     • If configured, request reviewers from `reviewer.request_reviewers`.
+  5) PR: invoke MCP tools to create or update the PR (e.g., `github.createPullRequest`, `github.getPullRequest`, `github.markReadyForReview`). If a PR already exists for the branch, ensure ready state and optionally update body; else create using `<base>`, `<head>`, `<title>`, and body file.
+     • If configured, request reviewers via MCP (e.g., `github.requestReviewers`).
 - **Output**: PR URL; `.codex/runs/<ts>/pr_body.md` written. Prints terminal line `NEXT: PR created/updated and ready for review` (or `BLOCKED/INFO` with reason).
 
 ---
@@ -355,7 +357,7 @@ StoryPlanner also manages the Product Vision paragraph:
 | **Parallel work** | Deterministic selection (priority,id,age) prevents ambiguity; small PRs limit risk |
 | **Reruns/new sessions** | Stateless agents read specs/tasks/logs; consistent via selection precedence |
 | **No GitHub / no commits** | Full loop works locally; Integrator records **shadow lineage** and flips statuses |
-| **GitHub issue mirroring** | Toggle on: GitHubIssueCreator creates issues, Integrator reconciles status/boards; toggle off or offline: agents defer with `INFO` and keep work local |
+| **GitHub issue mirroring** | Toggle on: GitHubIssueCreator creates issues via MCP and Integrator reconciles status/boards; toggle off or offline: agents defer with `INFO` and keep work local |
 
 ---
 

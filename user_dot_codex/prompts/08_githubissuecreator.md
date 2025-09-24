@@ -1,22 +1,21 @@
 # 08_githubissuecreator — GitHubIssueCreator
 
 ## Goal
-Materialize `.codex/tasks` entries as GitHub issues (and update existing ones) whenever GitHub integration is enabled.
+Materialize `.codex/tasks` entries as GitHub issues (and update existing ones) via MCP whenever GitHub integration is enabled.
 
 ## Inputs
 - `.codex/tasks/*.md`
 - `.codex/spec/01.requirements.md` (for story titles)
 - GitHub config block `integrations.github` from `AGENTS.md`
 - Environment override `CODEX_GITHUB_ENABLED`
-- GitHub CLI (`gh`) with `repo` scope
+- MCP GitHub server available in the session (default `server_id: github`)
 
 ## Selection
 Resolve target using Selection precedence (NEXT → eligible set → INFO).
 
 ## Preflight
 - Compute effective toggle: spec flag XOR env override. If disabled → `INFO: github integration disabled`.
-- Require `gh` installed/authenticated; otherwise `BLOCKED: gh not available`.
-- Run `gh auth status` first (no auto-login). Missing `repo`/`project` scopes or auth failure → `BLOCKED: gh not authenticated` with guidance to run `gh auth login --scopes repo,project`. 
+- Require MCP GitHub server available and authorized; otherwise `BLOCKED: MCP GitHub unavailable`.
 - Ensure project `AGENTS.md` has an `integrations.github` block; if absent, append the default block and `BLOCKED: github integration not configured`. If present but `owner` or `repo` empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
 - Optional project settings: `project_view`, `default_column`.
 
@@ -30,19 +29,19 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
    - Load story title via `story_id` for linking.
    - Gather Scope/Test Plan excerpts for the issue body.
    - Derive labels: `story/<story_id>`, `component/<component>`, `priority/P#`, plus a status label (replace `_` with `-`, e.g., `status/in-progress`).
-2) Determine action:
+2) Determine action (use tool names from `integrations.github.tools` in `AGENTS.md`):
    - If `issue_number` is null → plan to create a new issue.
-   - If `pending_update=true` and `issue_number` present → run `gh issue view --repo <owner/repo> <issue_number> --json number,url,updatedAt,state,title,body` (treat 404 as deleted).
+   - If `pending_update=true` and `issue_number` present → fetch via MCP tool (e.g., `github.getIssue(owner, repo, issue_number)`).
      • 404/not found → mark for recreation.
      • Found but remote hash differs → record drift in `github.sync_notes`, leave `pending_update=true`, skip edits (Integrator handles reconcile).
      • Found and matches hash → clear `pending_update`, update timestamps.
-3) Create or edit issue when required:
+3) Create or edit issue when required (use `tools.issue_create` / `tools.issue_update`):
    - Compose body in a temp file via `mktemp` (delete after use). Sections: Summary, Story link, Scope bullets, Acceptance/Test Plan highlights, Open Questions, Local Status.
-   - New issue: `gh issue create --repo <owner/repo> --title "TASK-###: <summary>" --body-file <tempfile> --label <labels> --json number,url,updatedAt`.
-   - Existing issue refresh: `gh issue edit --repo <owner/repo> <issue_number> --title ... --body-file <tempfile>` then `gh issue view --json number,url,updatedAt,state,title,body` for metadata.
+   - New issue: call MCP `github.createIssue(owner, repo, title, body, labels)` and capture `number`, `url`, `updatedAt`.
+   - Existing issue refresh: call MCP `github.updateIssue(owner, repo, issue_number, title, body)` then refresh via `github.getIssue`.
    - Update task fields (`issue_number`, `issue_url`, `last_remote_updated_at`).
-4) Sync project (optional):
-   - If `project_view` configured, call `gh project item-add` when `project_item_id` empty, then `gh project item-move` to column mapped from task status (ready→Todo, in_progress→In Progress, review→Review, done→Done).
+4) Sync project (optional; use `tools.project_add_item` / `tools.project_move_item`):
+   - If `project_view` configured, call MCP project tools to add an item when `project_item_id` is empty, then move it to the status-mapped column (ready→Todo, in_progress→In Progress, review→Review, done→Done).
    - Store `project_item_id` on first add.
 5) Update snapshot:
    - Compute `status_snapshot_sha` (sha256 of title + body + state).

@@ -1,7 +1,7 @@
 # 07_pr_creator — PR Creator (Utility)
 
 ## Goal
-Commit current changes and open a ready‑for‑review PR via GitHub CLI, honoring guardrails and not breaking local‑only workflows.
+Commit current changes and open a ready‑for‑review PR via MCP GitHub server, honoring guardrails and not breaking local‑only workflows.
 
 ## Inputs
 - Project/user `AGENTS.md` (PR Automation settings and title convention)
@@ -12,9 +12,8 @@ Commit current changes and open a ready‑for‑review PR via GitHub CLI, honori
 Utility prompt — run explicitly. For consistency: resolve targets using Selection precedence if applicable.
 
 ## Guardrails / Preflight (must pass)
-1) GitHub CLI present and authenticated:
-   - `command -v gh >/dev/null 2>&1` else `BLOCKED: gh not installed`.
-   - `gh auth status` must succeed; token must include `repo` scope; else `BLOCKED: gh not authenticated`.
+1) MCP GitHub server available and authorized:
+   - If the configured MCP GitHub server is not available in the session or not authorized for the target repo → `BLOCKED: MCP GitHub unavailable`.
 2) Remote present and reachable:
    - `git remote get-url origin` must succeed; else `BLOCKED: no remote origin`.
 3) Determine base branch (default):
@@ -53,16 +52,16 @@ Utility prompt — run explicitly. For consistency: resolve targets using Select
    - Commit: `git commit -m "<derived title>"`.
 4) Push:
    - `git push -u origin "$BRANCH"`.
-5) Create PR (ready‑for‑review):
-   - If PR already exists for branch: update body if needed and ensure it’s ready: `gh pr view "$BRANCH" || true; gh pr ready "$BRANCH" || true`.
-   - Else create: `gh pr create --base "$BASE" --head "$BRANCH" --title "<derived title>" --body-file <body.md>` (omit `--draft` so it’s ready).
-   - If reviewers configured in `reviewer.request_reviewers`, then: `gh pr edit "$BRANCH" --add-reviewer <comma-separated>`.
+5) Create PR (ready‑for‑review) via configured tools in `integrations.github.tools`:
+   - If a PR already exists for branch: ensure it’s ready and update body (use `tools.pr_get`, `tools.pr_mark_ready`, `tools.pr_update`).
+   - Else create via MCP (use `tools.pr_create` with base=head/title/body) (create as ready by default unless project policy dictates draft).
+   - If reviewers configured in `reviewer.request_reviewers`, request via MCP (use `tools.pr_request_reviewers`).
 6) Terminal line:
    - On success: `NEXT: PR created/updated and ready for review`.
    - On soft issues: `INFO: pr_too_large` (if large) or `INFO: PR already exists (ensured ready)`.
    - On hard issues: `BLOCKED: <reason>`.
 
 ## Notes
-- Never blocks local‑only workflows outside PR creation: if preflight fails (no remote or gh), stop cleanly with BLOCKED; do not modify repo.
+- Never blocks local‑only workflows outside PR creation: if preflight fails (no remote or MCP GitHub), stop cleanly with BLOCKED; do not modify repo.
 - Idempotent: safe to rerun; reuses branch and PR if present, ensures ready state.
 - Keep titles short; detailed notes go in the PR body file.

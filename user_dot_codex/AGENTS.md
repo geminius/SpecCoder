@@ -50,14 +50,26 @@
 - integrator.require_changelog_entry: false
 
 ## Integrations (optional)
-- github:
+- github:  # All GitHub automation uses MCP (Model Context Protocol)
   - enabled: false  # override per-repo via `integrations.github` block
   - owner: ""
   - repo: ""
   - project_view: ""  # optional project ID
   - default_column: "Todo"
   - sync_policy: push_only  # allowed: push_only | two_way | manual
+  - server_id: github  # MCP server id in your Codex session
   - env_override: CODEX_GITHUB_ENABLED=0|1
+  - tools:  # Override these if your MCP server exposes different names
+    issue_get: github.getIssue
+    issue_create: github.createIssue
+    issue_update: github.updateIssue
+    project_add_item: github.projects.addItem
+    project_move_item: github.projects.moveItem
+    pr_get: github.getPullRequest
+    pr_create: github.createPullRequest
+    pr_update: github.updatePullRequest
+    pr_mark_ready: github.markReadyForReview
+    pr_request_reviewers: github.requestReviewers
 
 ## PR Automation (optional)
 # Builder can optionally open a draft PR after moving a task to review.

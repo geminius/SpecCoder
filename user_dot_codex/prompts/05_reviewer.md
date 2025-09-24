@@ -29,8 +29,8 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
 4) Write `.codex/runs/<ts>/reviewer.md` (checklist + recommendations).
 
 ## PR Automation (optional)
-- If `reviewer.auto_mark_pr_ready=true` and a draft PR exists for the current branch, flip it to ready-for-review using GitHub CLI.
-- If `reviewer.request_reviewers` is non-empty and a PR exists, request those reviewers.
+- If `reviewer.auto_mark_pr_ready=true` and a draft PR exists for the current branch, flip it to ready-for-review via MCP GitHub (use `integrations.github.tools.pr_mark_ready`).
+- If `reviewer.request_reviewers` is non-empty and a PR exists, request those reviewers via MCP (use `integrations.github.tools.pr_request_reviewers`).
 - These automations are best-effort and must not block local-only workflows.
 
 ## Output
