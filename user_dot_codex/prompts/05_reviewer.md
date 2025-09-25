@@ -20,7 +20,7 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
   - If changes touch src/**, tests/**, or scripts/** not listed in any task's `artifacts`:
     - Auto-create `.codex/tasks/TASK-RETROFIT-###.md` (priority=P1) capturing those paths; status=ready.
     - Print BLOCKED: orphan diff → created retrofit task; stop.
-- Optional changelog discipline: if `reviewer.block_without_changelog=true`, require a changelog entry or draft (e.g., a "Changelog" section in `.codex/runs/*/builder.md`); otherwise set task.status=blocked (reason: missing changelog) and stop.
+- Optional changelog discipline: if `reviewer.block_without_changelog=true` and a changelog entry/draft is missing (e.g., a "Changelog" section in `.codex/runs/*/builder.md`), set `task.status=blocked` (reason: missing changelog) and stop. Otherwise, do not block on changelog.
 
 ## Steps
 1) DoD checks: IDs present, docs updated, tests present, coverage ≥ coverage_min.
@@ -29,8 +29,8 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
 4) Write `.codex/runs/<ts>/reviewer.md` (checklist + recommendations).
 
 ## PR Automation (optional)
-- If `reviewer.auto_mark_pr_ready=true` and a draft PR exists for the current branch, flip it to ready-for-review via MCP GitHub (use `integrations.github.tools.pr_mark_ready`).
-- If `reviewer.request_reviewers` is non-empty and a PR exists, request those reviewers via MCP (use `integrations.github.tools.pr_request_reviewers`).
+- If `reviewer.auto_mark_pr_ready=true` and a draft PR exists for the current branch, flip it to ready-for-review through the GitHub integration (use `integrations.github.tools.pr_mark_ready`).
+- If `reviewer.request_reviewers` is non-empty and a PR exists, request those reviewers through the GitHub integration (use `integrations.github.tools.pr_request_reviewers`).
 - These automations are best-effort and must not block local-only workflows.
 
 ## Output

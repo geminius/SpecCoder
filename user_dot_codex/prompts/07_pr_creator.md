@@ -1,7 +1,7 @@
 # 07_pr_creator — PR Creator (Utility)
 
 ## Goal
-Commit current changes and open a ready‑for‑review PR via MCP GitHub server, honoring guardrails and not breaking local‑only workflows.
+Commit current changes and open a ready‑for‑review PR through the GitHub integration, honoring guardrails and not breaking local-only workflows.
 
 ## Inputs
 - Project/user `AGENTS.md` (PR Automation settings and title convention)
@@ -12,14 +12,15 @@ Commit current changes and open a ready‑for‑review PR via MCP GitHub server,
 Utility prompt — run explicitly. For consistency: resolve targets using Selection precedence if applicable.
 
 ## Guardrails / Preflight (must pass)
-1) MCP GitHub server available and authorized:
-   - If the configured MCP GitHub server is not available in the session or not authorized for the target repo → `BLOCKED: MCP GitHub unavailable`.
+1) GitHub integration available and authorized:
+   - If the configured GitHub integration is not available in the session or not authorized for the target repo → `BLOCKED: GitHub integration unavailable`.
 2) Remote present and reachable:
    - `git remote get-url origin` must succeed; else `BLOCKED: no remote origin`.
 3) Determine base branch (default):
    - `BASE=$(git rev-parse --abbrev-ref origin/HEAD | sed 's#origin/##') || BASE=main`.
 4) Enforce forbidden paths policy (fail‑closed):
    - If staged or working changes touch `infra/**`, `.github/**`, `deploy/**`, `**/*.secrets*`, `**/.env*`, `**/secrets/**` → `BLOCKED: forbidden path changes`.
+     - Exception (opt‑in): if `integrations.github.pr_creator.allow_repo_plumbing=true`, allow PRs that include `.github/**` or repo plumbing changes for review (PR Creator never authors those changes itself). Other sensitive paths remain blocked.
      - Example check: `git status --porcelain | awk '{print $2}' | rg -n '^(infra/|\.github/|deploy/)|(\.secrets|/secrets/|/\.env)'`.
 5) Small PR sanity (advisory):
    - If changed files > 50 or total diff > ~1000 lines, print `INFO: pr_too_large` and proceed only if explicitly confirmed.
@@ -52,16 +53,16 @@ Utility prompt — run explicitly. For consistency: resolve targets using Select
    - Commit: `git commit -m "<derived title>"`.
 4) Push:
    - `git push -u origin "$BRANCH"`.
-5) Create PR (ready‑for‑review) via configured tools in `integrations.github.tools`:
-   - If a PR already exists for branch: ensure it’s ready and update body (use `tools.pr_get`, `tools.pr_mark_ready`, `tools.pr_update`).
-   - Else create via MCP (use `tools.pr_create` with base=head/title/body) (create as ready by default unless project policy dictates draft).
-   - If reviewers configured in `reviewer.request_reviewers`, request via MCP (use `tools.pr_request_reviewers`).
+5) Create PR (ready-for-review) via configured tools in `integrations.github.tools`:
+   - If a PR already exists for branch: ensure it’s ready and update body (use `tools.pr_get`, `tools.pr_mark_ready`, `tools.pr_update`). If multiple open PRs reference the same task, prefer the one whose diff overlaps the highest proportion of the task’s `artifacts`; if ambiguous, print `INFO: multiple candidate PRs` and proceed with the branch‑matched PR only.
+   - Else create using the GitHub integration (use `tools.pr_create` with base=head/title/body) (create as ready by default unless project policy dictates draft).
+   - If reviewers configured in `reviewer.request_reviewers`, request through the integration (use `tools.pr_request_reviewers`).
 6) Terminal line:
    - On success: `NEXT: PR created/updated and ready for review`.
    - On soft issues: `INFO: pr_too_large` (if large) or `INFO: PR already exists (ensured ready)`.
    - On hard issues: `BLOCKED: <reason>`.
 
 ## Notes
-- Never blocks local‑only workflows outside PR creation: if preflight fails (no remote or MCP GitHub), stop cleanly with BLOCKED; do not modify repo.
+- Never blocks local-only workflows outside PR creation: if preflight fails (no remote or GitHub integration), stop cleanly with BLOCKED; do not modify repo.
 - Idempotent: safe to rerun; reuses branch and PR if present, ensures ready state.
 - Keep titles short; detailed notes go in the PR body file.

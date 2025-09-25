@@ -50,16 +50,20 @@
 - integrator.require_changelog_entry: false
 
 ## Integrations (optional)
-- github:  # All GitHub automation uses MCP (Model Context Protocol)
+- github:  # All GitHub automation uses the configured GitHub integration
   - enabled: false  # override per-repo via `integrations.github` block
   - owner: ""
   - repo: ""
-  - project_view: ""  # optional project ID
-  - default_column: "Todo"
+  - project_view: ""  # optional project ID or URL
+  - project_type: v2   # classic | v2 (default v2)
+  - columns: { ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }
   - sync_policy: push_only  # allowed: push_only | two_way | manual
-  - server_id: github  # MCP server id in your Codex session
+  - pr_base: main
+  - pr_remote: origin
+  - pr_creator.allow_repo_plumbing: false  # allow PRs that include .github/** changes (PR Creator never authors them)
+  - server_id: github  # GitHub integration server id in your Codex session
   - env_override: CODEX_GITHUB_ENABLED=0|1
-  - tools:  # Override these if your MCP server exposes different names
+  - tools:  # Override these if your GitHub integration exposes different names
     issue_get: github.getIssue
     issue_create: github.createIssue
     issue_update: github.updateIssue
@@ -91,7 +95,7 @@
 
 ## Global Guardrails & Commands
 - Never edit: infra/**, .github/**, deploy/**, **/*.secrets*, **/.env*, **/secrets/**
-- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**, .codex/tools/**
+- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**, .codex/tools/**, .codex/spec/01.requirements.md (story status flips only)
 - Commands (override in project): install, lint, test, test:it, coverage_min (default 80)
 - Commit/PR (when VCS is used): "[STORY-ID][TASK-ID][COMP-<component>] <summary>"
 

@@ -6,7 +6,7 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
 - User‑level defaults under `user_dot_codex/` (copy to `~/.codex/`):
   - `AGENTS.md` — policies, selection rules, guardrails
 - `prompts/00..06` — StoryPlanner → Integrator agent prompts
-- `prompts/07_pr_creator.md` — optional PR creation utility (via MCP)
+- `prompts/07_pr_creator.md` — optional PR creation utility (uses the GitHub integration)
   - `schemas/` — story, design, task, derived list templates, and a personas catalog template
 - A minimal `demo_repo/` showing the full loop with local‑only “shadow lineage”.
 
@@ -23,7 +23,7 @@ A spec‑first, prompt‑only workflow that turns product specs into determinist
 2) In your project, run agents in order or jump in anywhere:
    - StoryPlanner → ArchitecturePlanner → TaskPlanner → Builder → Tester → Reviewer → Integrator
 3) No GitHub? Everything still works locally; Integrator records a shadow ID.
-4) On GitHub? Use the optional PR flags in `AGENTS.md` or run `07_pr_creator.md` to open a ready‑for‑review PR via MCP with an auto‑generated description.
+4) On GitHub? Use the optional PR flags in `AGENTS.md` or run `07_pr_creator.md` to open a ready‑for‑review PR with an auto‑generated description.
 
 ## Interactive Mode Menus
 Agents run with zero parameters but now start with a small, first‑turn menu to make intent explicit. If you provide no selection, they default to the first option.
@@ -66,7 +66,7 @@ Agents run with zero parameters but now start with a small, first‑turn menu to
 - Existing codebase, add specs: Backfill stories/design; TaskPlanner creates focused tasks; Reviewer catches orphan diffs.
 - Hotfix: Mark story `kind: hotfix` (P0); a single focused task; integrate safely.
 - Local‑only: End‑to‑end without commits/PRs; Integrator logs shadow lineage.
-- GitHub PRs: Use Builder/Reviewer flags or the `07_pr_creator` utility to script draft/ready PRs via MCP.
+- GitHub PRs: Use Builder/Reviewer flags or the `07_pr_creator` utility to automate draft/ready PRs through the GitHub integration.
 
 ## More Details
 For the full end‑to‑end design and policies, see `spec_driven_codex_agentic_framework_end_to_end_design_v_1.md`.
@@ -75,18 +75,18 @@ For the full end‑to‑end design and policies, see `spec_driven_codex_agentic_
 
 Tip: Project‑level overrides live in your repo’s `AGENTS.md` (see `demo_repo/AGENTS.md` for examples). Forbidden paths and Builder‑editable areas are enforced by guardrails.
 
-## MCP GitHub Setup
+## GitHub Integration Setup
 
 - Requirements:
   - A GitHub Personal Access Token with `repo` (and optionally `project`) scopes exported as `GITHUB_PERSONAL_ACCESS_TOKEN`.
-  - Node.js with `npx` available (for the MCP GitHub server).
+  - Node.js with `npx` available (to run the GitHub integration server).
 
-- Configure the MCP GitHub server (recommended via CLI):
+- Configure the GitHub integration server (recommended via CLI):
   - `codex mcp add github --env GITHUB_TOKEN=$GITHUB_PERSONAL_ACCESS_TOKEN npx -y @modelcontextprotocol/server-github`
   - Verify: `codex mcp list` should show a `github` server with `npx -y @modelcontextprotocol/server-github`.
 
 - Configure Codex (global):
-  - Codex reads MCP config from `~/.codex/config.toml`. A minimal manual entry is:
+  - Codex reads integration config from `~/.codex/config.toml`. A minimal manual entry is:
     
     [mcp.servers.github]
     command = "npx"
@@ -95,7 +95,7 @@ Tip: Project‑level overrides live in your repo’s `AGENTS.md` (see `demo_repo
 
 - Configure project integration:
   - In your project `AGENTS.md`, set `integrations.github.enabled: true` and `server_id: github`.
-  - Optionally override tool names if your MCP server differs:
+  - Optionally override tool names if your GitHub integration uses different names:
     - `integrations.github.tools.issue_get`
     - `integrations.github.tools.issue_create`
     - `integrations.github.tools.issue_update`
@@ -106,5 +106,47 @@ Tip: Project‑level overrides live in your repo’s `AGENTS.md` (see `demo_repo
     - `integrations.github.tools.pr_update`
     - `integrations.github.tools.pr_mark_ready`
     - `integrations.github.tools.pr_request_reviewers`
+  - Optional project board settings:
+    - `integrations.github.project_view`: project ID or URL
+    - `integrations.github.project_type`: `classic` | `v2` (default `v2`)
+    - `integrations.github.columns`: status→column mapping, e.g. `{ ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }`
+  - Optional PR settings:
+    - `integrations.github.pr_base`: base branch (default `main`)
+    - `integrations.github.pr_remote`: remote name (default `origin`)
+    - `integrations.github.pr_creator.allow_repo_plumbing`: allow PRs that include `.github/**` or repo plumbing changes for review (default `false`; PR Creator never authors those changes)
 
 - Toggle integration per run (optional): set `CODEX_GITHUB_ENABLED=1` (or `0`) in the environment.
+
+Example `AGENTS.md` configuration (copy/paste)
+
+```
+integrations:
+  github:
+    enabled: true
+    owner: your-org-or-user
+    repo: your-repo
+    # Project boards (optional)
+    project_view: ""           # project ID or URL
+    project_type: v2            # classic | v2 (default v2)
+    columns: { ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }
+    # Sync policy: manual | push_only | two_way
+    sync_policy: push_only
+    # PR settings (optional)
+    pr_base: main
+    pr_remote: origin
+    pr_creator:
+      allow_repo_plumbing: false  # allow PRs that include .github/** for review (never authored by agents)
+    # Integration server + tools mapping
+    server_id: github
+    tools:
+      issue_get: github.getIssue
+      issue_create: github.createIssue
+      issue_update: github.updateIssue
+      project_add_item: github.projects.addItem
+      project_move_item: github.projects.moveItem
+      pr_get: github.getPullRequest
+      pr_create: github.createPullRequest
+      pr_update: github.updatePullRequest
+      pr_mark_ready: github.markReadyForReview
+      pr_request_reviewers: github.requestReviewers
+```

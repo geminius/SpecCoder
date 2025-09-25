@@ -9,16 +9,21 @@ coverage_min: 80
 
 components: [auth, api, notify, db]
 
-# GitHub integration (demo settings) — uses MCP
+# GitHub integration (demo settings) — for actions like creating GitHub PRs or issues
 integrations:
   github:
     enabled: true
     owner: geminius
     repo: SpecCoder
     project_view: "test-project"
-    default_column: "Todo"
+    project_type: v2
+    columns: { ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }
     sync_policy: push_only
     server_id: github
+    pr_base: main
+    pr_remote: origin
+    pr_creator:
+      allow_repo_plumbing: false
     tools:
       issue_get: github.getIssue
       issue_create: github.createIssue

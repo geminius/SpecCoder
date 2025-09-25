@@ -4,7 +4,7 @@
 System/integration testing against acceptance with coverage enforcement.
 
 ## Preflight (status gate)
-- Resolve target by selection precedence.
+- Resolve target using Selection precedence (NEXT → eligible set → INFO).
 - Read `.codex/tasks/<TASK-ID>.md`:
   - If status != review → BLOCKED: task not in 'review'. Do not write tester.result.json.
   - If status == blocked → BLOCKED: fix blocking issues first.
