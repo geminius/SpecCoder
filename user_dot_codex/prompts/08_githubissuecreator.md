@@ -15,7 +15,8 @@ Resolve target using Selection precedence (NEXT → eligible set → INFO).
 
 ## Preflight
 - Compute effective toggle: spec flag XOR env override. If disabled → `INFO: github integration disabled`.
-- Require the GitHub integration to be available and authorized; otherwise `BLOCKED: GitHub integration unavailable`.
+- Require the GitHub to be available and authorized; otherwise `BLOCKED: GitHub integration unavailable`.
+- No local fallback: do not implement or call direct HTTP clients, GitHub CLI, or any `.codex/tools/**` scripts to reach GitHub. Use only the configured integration tools; if unavailable/disabled → exit with `BLOCKED` (no fallback behavior).
 - Ensure project `AGENTS.md` has an `integrations.github` block; if absent, append the default block and `BLOCKED: github integration not configured`. If present but `owner` or `repo` empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
 - Optional project settings: `project_view`, `project_type`, and `columns` mapping.
 

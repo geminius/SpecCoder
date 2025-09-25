@@ -12,8 +12,13 @@ Commit current changes and open a ready‑for‑review PR through the GitHub int
 Utility prompt — run explicitly. For consistency: resolve targets using Selection precedence if applicable.
 
 ## Guardrails / Preflight (must pass)
-1) GitHub integration available and authorized:
-   - If the configured GitHub integration is not available in the session or not authorized for the target repo → `BLOCKED: GitHub integration unavailable`.
+0) Integration toggle and policy (no local fallback):
+   - Compute effective toggle: spec flag XOR env override (`CODEX_GITHUB_ENABLED`). If disabled → `INFO: github integration disabled`.
+   - Require the GitHub integration to be available and authorized; otherwise `BLOCKED: GitHub integration unavailable`.
+   - Use only the configured integration tools; do not create or invoke any local scripts/clients (no `.codex/tools/**`, no `gh`, no direct HTTP). If integration is disabled/unavailable → exit with `BLOCKED` (do not attempt local fallbacks).
+1) Project configuration present:
+   - Ensure project `AGENTS.md` contains an `integrations.github` block; if absent, append the default block and `BLOCKED: github integration not configured`.
+   - If `owner` or `repo` is empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
 2) Remote present and reachable:
    - `git remote get-url origin` must succeed; else `BLOCKED: no remote origin`.
 3) Determine base branch (default):
@@ -64,5 +69,6 @@ Utility prompt — run explicitly. For consistency: resolve targets using Select
 
 ## Notes
 - Never blocks local-only workflows outside PR creation: if preflight fails (no remote or GitHub integration), stop cleanly with BLOCKED; do not modify repo.
+- No local fallback: use only the configured GitHub integration tools; do not create or run any `.codex/tools/**` scripts for PRs.
 - Idempotent: safe to rerun; reuses branch and PR if present, ensures ready state.
 - Keep titles short; detailed notes go in the PR body file.
