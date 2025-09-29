@@ -8,6 +8,8 @@
 - Tester: 04_tester.md
 - Reviewer: 05_reviewer.md
 - Integrator: 06_integrator.md
+- GitHubIssueCreator: 08_githubissuecreator.md  # optional
+- PRCreator: 07_pr_creator.md  # optional utility
 
 ## Schemas (authoritative)
 - story: ~/.codex/schemas/requirements.template.md
@@ -47,6 +49,32 @@
 - reviewer.block_without_changelog: false
 - integrator.require_changelog_entry: false
 
+## Integrations (optional)
+- github:  # All GitHub automation uses the configured GitHub integration
+  - enabled: false  # override per-repo via `integrations.github` block
+  - owner: ""
+  - repo: ""
+  - project_view: ""  # optional project ID or URL
+  - project_type: v2   # classic | v2 (default v2)
+  - columns: { ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }
+  - sync_policy: push_only  # allowed: push_only | two_way | manual
+  - pr_base: main
+  - pr_remote: origin
+  - pr_creator.allow_repo_plumbing: false  # allow PRs that include .github/** changes (PR Creator never authors them)
+  - server_id: github  # GitHub integration server id in your Codex session
+  - env_override: CODEX_GITHUB_ENABLED=0|1
+  - tools:  # Override these if your GitHub integration exposes different names
+    issue_get: github.getIssue
+    issue_create: github.createIssue
+    issue_update: github.updateIssue
+    project_add_item: github.projects.addItem
+    project_move_item: github.projects.moveItem
+    pr_get: github.getPullRequest
+    pr_create: github.createPullRequest
+    pr_update: github.updatePullRequest
+    pr_mark_ready: github.markReadyForReview
+    pr_request_reviewers: github.requestReviewers
+
 ## PR Automation (optional)
 # Builder can optionally open a draft PR after moving a task to review.
 # Reviewer can optionally flip a draft PR to ready-for-review.
@@ -67,7 +95,7 @@
 
 ## Global Guardrails & Commands
 - Never edit: infra/**, .github/**, deploy/**, **/*.secrets*, **/.env*, **/secrets/**
-- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**, .codex/tools/**
+- Builder edits only: src/**, tests/**, scripts/**, .codex/tasks/**, .codex/tools/**, .codex/spec/01.requirements.md (story status flips only)
 - Commands (override in project): install, lint, test, test:it, coverage_min (default 80)
 - Commit/PR (when VCS is used): "[STORY-ID][TASK-ID][COMP-<component>] <summary>"
 

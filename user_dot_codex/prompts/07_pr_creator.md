@@ -1,7 +1,7 @@
 # 07_pr_creator — PR Creator (Utility)
 
 ## Goal
-Commit current changes and open a ready‑for‑review PR via GitHub CLI, honoring guardrails and not breaking local‑only workflows.
+Commit current changes and open a ready‑for‑review PR through the GitHub integration, honoring guardrails and not breaking local-only workflows.
 
 ## Inputs
 - Project/user `AGENTS.md` (PR Automation settings and title convention)
@@ -12,15 +12,20 @@ Commit current changes and open a ready‑for‑review PR via GitHub CLI, honori
 Utility prompt — run explicitly. For consistency: resolve targets using Selection precedence if applicable.
 
 ## Guardrails / Preflight (must pass)
-1) GitHub CLI present and authenticated:
-   - `command -v gh >/dev/null 2>&1` else `BLOCKED: gh not installed`.
-   - `gh auth status` must succeed; token must include `repo` scope; else `BLOCKED: gh not authenticated`.
+0) Integration toggle and policy (no local fallback):
+   - Compute effective toggle: spec flag XOR env override (`CODEX_GITHUB_ENABLED`). If disabled → `INFO: github integration disabled`.
+   - Require the GitHub integration to be available and authorized; otherwise `BLOCKED: GitHub integration unavailable`.
+   - Use only the configured integration tools; do not create or invoke any local scripts/clients (no `.codex/tools/**`, no `gh`, no direct HTTP). If integration is disabled/unavailable → exit with `BLOCKED` (do not attempt local fallbacks).
+1) Project configuration present:
+   - Ensure project `AGENTS.md` contains an `integrations.github` block; if absent, append the default block and `BLOCKED: github integration not configured`.
+   - If `owner` or `repo` is empty → `BLOCKED: github repo not configured. Please fill those fields and rerun.`
 2) Remote present and reachable:
    - `git remote get-url origin` must succeed; else `BLOCKED: no remote origin`.
 3) Determine base branch (default):
    - `BASE=$(git rev-parse --abbrev-ref origin/HEAD | sed 's#origin/##') || BASE=main`.
 4) Enforce forbidden paths policy (fail‑closed):
    - If staged or working changes touch `infra/**`, `.github/**`, `deploy/**`, `**/*.secrets*`, `**/.env*`, `**/secrets/**` → `BLOCKED: forbidden path changes`.
+     - Exception (opt‑in): if `integrations.github.pr_creator.allow_repo_plumbing=true`, allow PRs that include `.github/**` or repo plumbing changes for review (PR Creator never authors those changes itself). Other sensitive paths remain blocked.
      - Example check: `git status --porcelain | awk '{print $2}' | rg -n '^(infra/|\.github/|deploy/)|(\.secrets|/secrets/|/\.env)'`.
 5) Small PR sanity (advisory):
    - If changed files > 50 or total diff > ~1000 lines, print `INFO: pr_too_large` and proceed only if explicitly confirmed.
@@ -53,16 +58,17 @@ Utility prompt — run explicitly. For consistency: resolve targets using Select
    - Commit: `git commit -m "<derived title>"`.
 4) Push:
    - `git push -u origin "$BRANCH"`.
-5) Create PR (ready‑for‑review):
-   - If PR already exists for branch: update body if needed and ensure it’s ready: `gh pr view "$BRANCH" || true; gh pr ready "$BRANCH" || true`.
-   - Else create: `gh pr create --base "$BASE" --head "$BRANCH" --title "<derived title>" --body-file <body.md>` (omit `--draft` so it’s ready).
-   - If reviewers configured in `reviewer.request_reviewers`, then: `gh pr edit "$BRANCH" --add-reviewer <comma-separated>`.
+5) Create PR (ready-for-review) via configured tools in `integrations.github.tools`:
+   - If a PR already exists for branch: ensure it’s ready and update body (use `tools.pr_get`, `tools.pr_mark_ready`, `tools.pr_update`). If multiple open PRs reference the same task, prefer the one whose diff overlaps the highest proportion of the task’s `artifacts`; if ambiguous, print `INFO: multiple candidate PRs` and proceed with the branch‑matched PR only.
+   - Else create using the GitHub integration (use `tools.pr_create` with base=head/title/body) (create as ready by default unless project policy dictates draft).
+   - If reviewers configured in `reviewer.request_reviewers`, request through the integration (use `tools.pr_request_reviewers`).
 6) Terminal line:
    - On success: `NEXT: PR created/updated and ready for review`.
    - On soft issues: `INFO: pr_too_large` (if large) or `INFO: PR already exists (ensured ready)`.
    - On hard issues: `BLOCKED: <reason>`.
 
 ## Notes
-- Never blocks local‑only workflows outside PR creation: if preflight fails (no remote or gh), stop cleanly with BLOCKED; do not modify repo.
+- Never blocks local-only workflows outside PR creation: if preflight fails (no remote or GitHub integration), stop cleanly with BLOCKED; do not modify repo.
+- No local fallback: use only the configured GitHub integration tools; do not create or run any `.codex/tools/**` scripts for PRs.
 - Idempotent: safe to rerun; reuses branch and PR if present, ensures ready state.
 - Keep titles short; detailed notes go in the PR body file.

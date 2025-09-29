@@ -12,6 +12,16 @@ design_fingerprint: "sha256:2ff2b48a932e4e0e3b5b586426e8d72dfda7de9b3fcef706379c
 superseded_by: null
 artifact_fingerprints: {}
 review_baseline_sha: ""
+github:
+  issue_number: 18
+  issue_url: "https://github.com/geminius/SpecCoder/issues/18"
+  project_item_id: ""
+  last_remote_updated_at: "2025-09-29T15:13:05Z"
+  last_local_sync_ts: "2025-09-29T15:14:45Z"
+  status_snapshot_sha: "334b8a4d7abcb5ef2517ce2a028d682a9f68c98ef96644471daabb259cc1e957"
+  pending_update: false
+  sync_notes:
+    - "2025-09-29T15:14:45Z created issue #18"
 tester_pass: null
 last_test_run_ts: null
 ---

@@ -9,6 +9,33 @@ coverage_min: 80
 
 components: [auth, api, notify, db]
 
+# GitHub integration (demo settings) — for actions like creating GitHub PRs or issues
+integrations:
+  github:
+    enabled: true
+    owner: geminius
+    repo: SpecCoder
+    project_view: "test-project"
+    project_type: v2
+    columns: { ready: "Todo", in_progress: "In Progress", review: "Review", done: "Done" }
+    sync_policy: push_only
+    server_id: github
+    pr_base: main
+    pr_remote: origin
+    pr_creator:
+      allow_repo_plumbing: false
+    tools:
+      issue_get: github.getIssue
+      issue_create: github.createIssue
+      issue_update: github.updateIssue
+      project_add_item: github.projects.addItem
+      project_move_item: github.projects.moveItem
+      pr_get: github.getPullRequest
+      pr_create: github.createPullRequest
+      pr_update: github.updatePullRequest
+      pr_mark_ready: github.markReadyForReview
+      pr_request_reviewers: github.requestReviewers
+
 # Optional PR automation (kept disabled in demo)
 builder.auto_open_pr: false
 builder.open_pr_draft: true
