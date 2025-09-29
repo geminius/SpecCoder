@@ -88,10 +88,10 @@ Tip: Project‑level overrides live in your repo’s `AGENTS.md` (see `demo_repo
 - Configure Codex (global):
   - Codex reads integration config from `~/.codex/config.toml`. A minimal manual entry is:
     
-    [mcp.servers.github]
-    command = "npx"
-    args = ["-y", "@modelcontextprotocol/server-github"]
-    env = { GITHUB_TOKEN = "$GITHUB_PERSONAL_ACCESS_TOKEN" }
+[mcp.servers.github]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-github"]
+env = { GITHUB_TOKEN = "<YOUR_GITHUB_PERSONAL_ACCESS_TOKEN>" }
 
 - Configure project integration:
   - In your project `AGENTS.md`, set `integrations.github.enabled: true` and `server_id: github`.
